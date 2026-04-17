@@ -1,0 +1,55 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "muni-m",
+          "appId": "1:479046921622:android:20296ceaf05448c1ea41b7",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "muni-m",
+          "appId": "1:479046921622:ios:a6115fc514a73bf6ea41b7",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "muni-m",
+          "appId": "1:479046921622:ios:a6115fc514a73bf6ea41b7",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "muni-m",
+          "configurations": {
+            "android": "1:479046921622:android:20296ceaf05448c1ea41b7",
+            "ios": "1:479046921622:ios:a6115fc514a73bf6ea41b7",
+            "macos": "1:479046921622:ios:a6115fc514a73bf6ea41b7",
+            "web": "1:479046921622:web:4a1dfd781d51e06eea41b7",
+            "windows": "1:479046921622:web:b97ea2bf543c76caea41b7"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

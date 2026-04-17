@@ -37,10 +37,17 @@ class GlassCard extends StatelessWidget {
             borderRadius: radius,
             gradient: gradient,
             color: gradient == null
-                ? (backgroundColor ?? AppColors.bgGlass)
+                ? (backgroundColor ??
+                    (Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.bgGlass
+                        : AppColors.bgGlassLight))
                 : null,
             border: showBorder
-                ? Border.all(color: AppColors.bgGlassBorder, width: 1)
+                ? Border.all(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.bgGlassBorder
+                        : AppColors.bgGlassBorderLight,
+                    width: 1)
                 : null,
           ),
           padding: padding,
@@ -86,8 +93,16 @@ class SolidCard extends StatelessWidget {
     Widget card = Container(
       decoration: BoxDecoration(
         borderRadius: radius,
-        gradient: gradient ?? AppColors.cardGradient,
-        border: Border.all(color: AppColors.bgGlassBorder, width: 0.5),
+        gradient: gradient ??
+            (Theme.of(context).brightness == Brightness.dark
+                ? AppColors.cardGradient
+                : AppColors.cardGradientLight),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.bgGlassBorder
+              : AppColors.bgGlassBorderLight,
+          width: 0.5,
+        ),
       ),
       padding: padding,
       child: child,

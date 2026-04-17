@@ -28,9 +28,16 @@ class NetProfitCard extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isPositive
-              ? [const Color(0xFF0A2E23), const Color(0xFF0C1F14)]
-              : [const Color(0xFF2E0A0A), const Color(0xFF1F0C0C)],
+          colors: Theme.of(context).brightness == Brightness.dark
+              ? (isPositive
+                  ? [const Color(0xFF0A2E23), const Color(0xFF0C1F14)]
+                  : [const Color(0xFF2E0A0A), const Color(0xFF1F0C0C)])
+              : (isPositive
+                  ? [
+                      AppColors.primaryGreen.withValues(alpha: 0.15),
+                      Colors.white
+                    ]
+                  : [AppColors.danger.withValues(alpha: 0.15), Colors.white]),
         ),
         border: Border.all(
           color: isPositive

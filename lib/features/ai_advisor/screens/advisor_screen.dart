@@ -136,8 +136,13 @@ class _AdvisorHeader extends StatelessWidget {
           20, MediaQuery.of(context).padding.top + 16, 20, 16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color ?? AppColors.bgCard,
-        border:
-            const Border(top: BorderSide(color: AppColors.bgGlassBorder)),
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.bgGlassBorder
+                : AppColors.bgGlassBorderLight,
+          ),
+        ),
       ),
       child: Row(
         children: [
@@ -235,7 +240,11 @@ class _QuickPrompts extends StatelessWidget {
                 color: Theme.of(context).cardTheme.color ??
                     AppColors.bgCard,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.bgGlassBorder),
+                border: Border.all(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.bgGlassBorder
+                      : AppColors.bgGlassBorderLight,
+                ),
               ),
               child: Text(
                 p.label,
@@ -330,7 +339,11 @@ class _ChatBubble extends StatelessWidget {
           ),
           border: isUser
               ? null
-              : Border.all(color: AppColors.bgGlassBorder),
+              : Border.all(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.bgGlassBorder
+                      : AppColors.bgGlassBorderLight,
+                ),
         ),
         child: Text(
           message.content,
@@ -385,7 +398,11 @@ class _TypingIndicatorState extends State<_TypingIndicator>
         decoration: BoxDecoration(
           color: Theme.of(context).cardTheme.color ?? AppColors.bgCard,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.bgGlassBorder),
+          border: Border.all(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.bgGlassBorder
+                : AppColors.bgGlassBorderLight,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -438,8 +455,13 @@ class _ChatInput extends StatelessWidget {
           16, 10, 16, MediaQuery.of(context).padding.bottom + 10),
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color ?? AppColors.bgCard,
-        border:
-            const Border(top: BorderSide(color: AppColors.bgGlassBorder)),
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.bgGlassBorder
+                : AppColors.bgGlassBorderLight,
+          ),
+        ),
       ),
       child: Row(
         children: [

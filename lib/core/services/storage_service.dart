@@ -96,7 +96,7 @@ class StorageService {
     final raw = prefs.getString(_themeKey);
     return ThemeMode.values.firstWhere(
       (e) => e.name == raw,
-      orElse: () => ThemeMode.system,
+      orElse: () => ThemeMode.light,
     );
   }
 

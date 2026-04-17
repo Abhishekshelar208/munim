@@ -247,8 +247,13 @@ class _CompoundHero extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0D2B1F), Color(0xFF091526)],
+        gradient: LinearGradient(
+          colors: Theme.of(context).brightness == Brightness.dark
+              ? [const Color(0xFF0D2B1F), const Color(0xFF091526)]
+              : [
+                  AppColors.primaryGreen.withValues(alpha: 0.1),
+                  AppColors.bgCardLight
+                ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

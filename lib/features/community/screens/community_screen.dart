@@ -170,13 +170,21 @@ class _UserRankCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1A1428), Color(0xFF0A1628)],
+        gradient: LinearGradient(
+          colors: Theme.of(context).brightness == Brightness.dark
+              ? [const Color(0xFF1A1428), const Color(0xFF0A1628)]
+              : [
+                  AppColors.premiumGold.withValues(alpha: 0.1),
+                  AppColors.bgCardLight
+                ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         border: Border.all(
-            color: AppColors.premiumGold.withValues(alpha: 0.3)),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.premiumGold.withValues(alpha: 0.3)
+              : AppColors.premiumGold.withValues(alpha: 0.5),
+        ),
       ),
       child: Row(
         children: [
@@ -281,7 +289,11 @@ class _WealthCircleCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color ?? AppColors.bgCard,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.bgGlassBorder),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.bgGlassBorder
+              : AppColors.bgGlassBorderLight,
+        ),
       ),
       child: Row(
         children: [
@@ -469,7 +481,9 @@ class _LeaderboardTile extends StatelessWidget {
         border: Border.all(
           color: entry.isMe
               ? AppColors.primaryGreen.withValues(alpha: 0.3)
-              : AppColors.bgGlassBorder,
+              : (Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.bgGlassBorder
+                  : AppColors.bgGlassBorderLight),
         ),
       ),
       child: Row(
@@ -522,14 +536,22 @@ class _WisdomCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0D1F38), Color(0xFF06101E)],
+        gradient: LinearGradient(
+          colors: Theme.of(context).brightness == Brightness.dark
+              ? [const Color(0xFF0D1F38), const Color(0xFF06101E)]
+              : [
+                  AppColors.accentBlue.withValues(alpha: 0.1),
+                  AppColors.bgCardLight
+                ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-            color: AppColors.accentBlue.withValues(alpha: 0.3)),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.accentBlue.withValues(alpha: 0.3)
+              : AppColors.accentBlue.withValues(alpha: 0.5),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -214,7 +214,7 @@ class AdvisorProvider extends ChangeNotifier {
 // ─────────────────────────────────────────────────────────────────────────────
 class ThemeProvider extends ChangeNotifier {
   final StorageService _storage;
-  ThemeMode _themeMode = ThemeMode.system;
+  ThemeMode _themeMode = ThemeMode.light;
 
   ThemeProvider(this._storage);
 

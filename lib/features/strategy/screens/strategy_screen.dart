@@ -190,12 +190,21 @@ class _AllocationCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF111C34), Color(0xFF0A1628)],
+        gradient: LinearGradient(
+          colors: Theme.of(context).brightness == Brightness.dark
+              ? [const Color(0xFF111C34), const Color(0xFF0A1628)]
+              : [
+                  AppColors.accentBlue.withValues(alpha: 0.1),
+                  AppColors.bgCardLight
+                ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        border: Border.all(color: AppColors.bgGlassBorder),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.bgGlassBorder
+              : AppColors.bgGlassBorderLight,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
