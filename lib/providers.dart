@@ -11,6 +11,7 @@ import '../core/services/ai_service.dart';
 import '../core/services/advisor_service.dart';
 import '../core/localization/app_localizations.dart';
 import '../core/services/ml_service.dart';
+import '../core/services/security_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UserProvider
@@ -88,6 +89,12 @@ class TransactionProvider extends ChangeNotifier {
     required double monthlyIncome,
     String? note,
   }) async {
+    // 1. SECURITY AGENT: Validate & Sanitize Input
+    SecurityService.instance.validateTransactionAmount(amount);
+    final safeTitle = SecurityService.instance.sanitizeText(title);
+    final safeNote = note != null ? SecurityService.instance.sanitizeText(note) : null;
+    SecurityService.instance.trackDataFlow(source: 'Input UI', destination: 'Security Layer', action: 'Data Validated & Sanitized');
+
     final now = DateTime.now();
     final prediction = MLService.instance.predictBehavior(
       amount: amount,
@@ -96,10 +103,11 @@ class TransactionProvider extends ChangeNotifier {
       date: now,
       monthlyTransactionCount: thisMonthTransactions.length,
     );
+    SecurityService.instance.trackDataFlow(source: 'Security Layer', destination: 'ML Layer', action: 'Behavior Prediction Generated');
 
     final t = TransactionModel(
       id: _uuid.v4(),
-      title: title,
+      title: safeTitle,
       amount: amount,
       type: type,
       category: category,
@@ -127,6 +135,8 @@ class TransactionProvider extends ChangeNotifier {
     }
 
     await _storage.saveTransactions(_transactions);
+    SecurityService.instance.trackDataFlow(source: 'Model Layer', destination: 'Storage Layer', action: 'Transaction Encrypted & Persisted');
+    
     notifyListeners();
   }
 

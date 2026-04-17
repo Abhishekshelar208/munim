@@ -1,4 +1,5 @@
 import 'behavior_prediction.dart';
+import '../services/security_service.dart';
 
 enum TransactionType { income, expense, investment, saving }
 
@@ -95,20 +96,20 @@ class TransactionModel {
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'title': title,
+    'title': SecurityService.instance.encryptData(title),
     'amount': amount,
     'type': type.index,
     'category': category.index,
     'roiLabel': roiLabel.index,
     'behaviorPrediction': behaviorPrediction?.toJson(),
     'date': date.toIso8601String(),
-    'note': note,
+    'note': note != null ? SecurityService.instance.encryptData(note!) : null,
   };
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) =>
       TransactionModel(
         id: json['id'] as String,
-        title: json['title'] as String,
+        title: SecurityService.instance.decryptData(json['title'] as String),
         amount: (json['amount'] as num).toDouble(),
         type: TransactionType.values[json['type'] as int],
         category: TransactionCategory.values[json['category'] as int],
@@ -117,6 +118,6 @@ class TransactionModel {
             ? BehaviorPrediction.fromJson(json['behaviorPrediction'] as Map<String, dynamic>)
             : null,
         date: DateTime.parse(json['date'] as String),
-        note: json['note'] as String?,
+        note: json['note'] != null ? SecurityService.instance.decryptData(json['note'] as String) : null,
       );
 }

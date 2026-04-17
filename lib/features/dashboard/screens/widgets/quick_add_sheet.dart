@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/models/transaction_model.dart';
 import '../../../../providers.dart';
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/services/security_service.dart';
 
 class QuickAddSheet extends StatefulWidget {
   const QuickAddSheet({super.key});
@@ -86,15 +87,31 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
     final monthlyIncome = context.read<UserProvider>().user.monthlyIncome;
 
     setState(() => _loading = true);
-    await context.read<TransactionProvider>().addTransaction(
-      title: title,
-      amount: amount,
-      type: _type,
-      category: _category,
-      monthlyIncome: monthlyIncome,
-      note: _noteCtrl.text.trim(),
-    );
-    if (mounted) Navigator.of(context).pop();
+    
+    try {
+      await context.read<TransactionProvider>().addTransaction(
+        title: title,
+        amount: amount,
+        type: _type,
+        category: _category,
+        monthlyIncome: monthlyIncome,
+        note: _noteCtrl.text.trim(),
+      );
+      if (mounted) Navigator.of(context).pop();
+    } on SecurityException catch (e) {
+      // SECURITY AGENT REJECTION
+      setState(() => _loading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _loading = false);
+    }
   }
 
   @override
