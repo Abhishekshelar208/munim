@@ -1,0 +1,534 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:animate_do/animate_do.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/services/finance_service.dart';
+import '../../../core/utils/currency_formatter.dart';
+import '../../../providers.dart';
+import '../../../core/models/goal_model.dart';
+import '../../../core/models/transaction_model.dart';
+import '../../../shared/widgets/glass_card.dart';
+import '../../../shared/widgets/section_header.dart';
+import '../../../shared/widgets/gradient_badge.dart';
+
+class StrategyScreen extends StatelessWidget {
+  const StrategyScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(
+            child: _StrategyHeader(),
+          ),
+
+          // Allocation Dial
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            sliver: SliverToBoxAdapter(
+              child: FadeInUp(
+                duration: const Duration(milliseconds: 400),
+                child: const _AllocationCard(),
+              ),
+            ),
+          ),
+
+          // Goals
+          const SliverToBoxAdapter(
+            child: SectionHeader(
+              title: 'Your Goals',
+              subtitle: 'Track your financial milestones',
+            ),
+          ),
+
+          Consumer<GoalProvider>(
+            builder: (_, goalProvider, __) {
+              return SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (ctx, i) {
+                      final goal = goalProvider.goals[i];
+                      return FadeInLeft(
+                        delay: Duration(milliseconds: 60 * i),
+                        duration: const Duration(milliseconds: 350),
+                        child: _GoalCard(goal: goal),
+                      );
+                    },
+                    childCount: goalProvider.goals.length,
+                  ),
+                ),
+              );
+            },
+          ),
+
+          // Decision Score Board
+          const SliverToBoxAdapter(
+            child: SectionHeader(
+              title: 'Decision Scorecard',
+              subtitle: 'How your recent spending scores for ROI',
+            ),
+          ),
+
+          Consumer<TransactionProvider>(
+            builder: (_, txnProvider, __) {
+              final scored = txnProvider.transactions.take(5).toList();
+              if (scored.isEmpty) {
+                return SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: _EmptyScoreCard(),
+                  ),
+                );
+              }
+              return SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (ctx, i) => _ScoredDecisionTile(transaction: scored[i]),
+                    childCount: scored.length,
+                  ),
+                ),
+              );
+            },
+          ),
+
+          // Wealth Rules
+          const SliverToBoxAdapter(
+            child: SectionHeader(title: 'Wealth Building Rules'),
+          ),
+
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate(
+                _wealthRules.map((r) => _WealthRuleTile(rule: r)).toList(),
+              ),
+            ),
+          ),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+        ],
+      ),
+    );
+  }
+
+  static final _wealthRules = [
+    _WealthRule('💰', 'Pay Yourself First', 'Invest before spending — set up an auto-SIP on salary day.', AppColors.primaryGreen),
+    _WealthRule('🛡️', '6-Month Emergency Fund', 'Never invest without 6 months of expenses secured.', AppColors.premiumGold),
+    _WealthRule('📈', 'Equity > FD for 5Y+', 'Anything you don\'t need for 5+ years belongs in equity.', AppColors.accentBlue),
+    _WealthRule('🚫', 'No Lifestyle Inflation', 'When income rises, increase investments — not spending.', AppColors.danger),
+    _WealthRule('🔄', 'Automate Savings', 'Manual saving always fails. Automate everything.', AppColors.primaryGreen),
+  ];
+}
+
+// ─── Header ──────────────────────────────────────────────────────────────────
+class _StrategyHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+          20, MediaQuery.of(context).padding.top + 16, 20, 16),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '💰 Strategy',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          SizedBox(height: 4),
+          Text(
+            'Your personalized money action plan',
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── 50-30-20 Allocation Card ─────────────────────────────────────────────────
+class _AllocationCard extends StatelessWidget {
+  const _AllocationCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final user = context.watch<UserProvider>().user;
+    final txnProvider = context.watch<TransactionProvider>();
+    final allocation =
+        FinanceService.instance.recommendAllocation(user.monthlyIncome);
+
+    final actualExpenses = txnProvider.thisMonthExpenses;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF111C34), Color(0xFF0A1628)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(color: AppColors.bgGlassBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Text('🎯', style: TextStyle(fontSize: 18)),
+              SizedBox(width: 8),
+              Text(
+                'Money Allocation',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Spacer(),
+              GradientBadge(label: '50-30-20 Rule'),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _AllocationRow(
+            label: '🏠 Needs',
+            recommended: allocation.needs,
+            color: AppColors.accentBlue,
+            hint: 'Rent, food, transport',
+          ),
+          const SizedBox(height: 12),
+          _AllocationRow(
+            label: '📈 Invest & Save',
+            recommended: allocation.investSave,
+            color: AppColors.primaryGreen,
+            hint: 'SIP, FD, emergency fund',
+          ),
+          const SizedBox(height: 12),
+          _AllocationRow(
+            label: '🎉 Wants',
+            recommended: allocation.wants,
+            color: AppColors.premiumGold,
+            hint: 'Entertainment, dining, travel',
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.primaryGreen.withOpacity(0.07),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              '💡 Invest before spending. Set up a ₹${CurrencyFormatter.compact(allocation.investSave)} SIP on your salary day.',
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AllocationRow extends StatelessWidget {
+  final String label;
+  final double recommended;
+  final Color color;
+  final String hint;
+
+  const _AllocationRow({
+    required this.label,
+    required this.recommended,
+    required this.color,
+    required this.hint,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Text(
+              CurrencyFormatter.compact(recommended),
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: 0.7,
+            minHeight: 5,
+            backgroundColor: AppColors.bgCardAlt,
+            valueColor: AlwaysStoppedAnimation(color),
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(hint, style: const TextStyle(color: AppColors.textMuted, fontSize: 10)),
+      ],
+    );
+  }
+}
+
+// ─── Goal Card ────────────────────────────────────────────────────────────────
+class _GoalCard extends StatelessWidget {
+  final GoalModel goal;
+
+  const _GoalCard({required this.goal});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.bgGlassBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(goal.emoji, style: const TextStyle(fontSize: 22)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      goal.title,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      '${goal.daysLeft} days left',
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                CurrencyFormatter.compact(goal.remaining),
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: goal.progressPercent,
+              minHeight: 6,
+              backgroundColor: AppColors.bgCardAlt,
+              valueColor: const AlwaysStoppedAnimation(AppColors.primaryGreen),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${(goal.progressPercent * 100).toStringAsFixed(0)}% complete',
+                style: const TextStyle(
+                  color: AppColors.primaryGreen,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                '${CurrencyFormatter.compact(goal.currentAmount)} / ${CurrencyFormatter.compact(goal.targetAmount)}',
+                style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Scored decision tile ──────────────────────────────────────────────────────
+class _ScoredDecisionTile extends StatelessWidget {
+  final TransactionModel transaction;
+
+  const _ScoredDecisionTile({required this.transaction});
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, color, icon) = switch (transaction.roiLabel) {
+      RoiLabel.excellent => ('Excellent', AppColors.primaryGreen, '🏆'),
+      RoiLabel.good      => ('Good', AppColors.accentBlueLight, '✅'),
+      RoiLabel.neutral   => ('Neutral', AppColors.textMuted, '➡️'),
+      RoiLabel.poor      => ('Review', AppColors.premiumGold, '⚠️'),
+      RoiLabel.terrible  => ('Bad Move', AppColors.danger, '❌'),
+    };
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.bgGlassBorder),
+      ),
+      child: Row(
+        children: [
+          Text(icon, style: const TextStyle(fontSize: 18)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              transaction.title,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          Text(
+            CurrencyFormatter.format(transaction.amount),
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyScoreCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.bgGlassBorder),
+      ),
+      child: const Center(
+        child: Text(
+          'Add transactions to see your decision scores',
+          style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Wealth Rule tile ─────────────────────────────────────────────────────────
+class _WealthRule {
+  final String emoji;
+  final String title;
+  final String description;
+  final Color color;
+  const _WealthRule(this.emoji, this.title, this.description, this.color);
+}
+
+class _WealthRuleTile extends StatelessWidget {
+  final _WealthRule rule;
+  const _WealthRuleTile({required this.rule});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: rule.color.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: rule.color.withOpacity(0.2)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(rule.emoji, style: const TextStyle(fontSize: 20)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  rule.title,
+                  style: TextStyle(
+                    color: rule.color,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  rule.description,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
