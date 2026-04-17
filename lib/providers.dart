@@ -12,6 +12,7 @@ import '../core/services/advisor_service.dart';
 import '../core/localization/app_localizations.dart';
 import '../core/services/ml_service.dart';
 import '../core/services/security_service.dart';
+import '../core/services/supervisor_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UserProvider
@@ -227,10 +228,10 @@ class AdvisorProvider extends ChangeNotifier {
 
     await Future.delayed(const Duration(milliseconds: 800));
 
-    AdvisorMessage response;
+    AdvisorMessage rawResponse;
     final lower = text.toLowerCase();
     if (lower.contains('analyze') || lower.contains('what should i do') || lower.contains('diagnostic')) {
-      response = AdvisorService.instance.analyzeState(
+      rawResponse = AdvisorService.instance.analyzeState(
         monthlyIncome: monthlyIncome,
         monthlyExpenses: monthlyExpenses,
         totalSavings: totalSavings,
@@ -238,10 +239,17 @@ class AdvisorProvider extends ChangeNotifier {
         latestTransaction: latestTransaction,
       );
     } else {
-      response = AdvisorService.instance.getFallbackResponse(text);
+      rawResponse = AdvisorService.instance.getFallbackResponse(text);
     }
 
-    _messages.add(response);
+    // Pass through Supervisor Agent to verify safety and consistency
+    final verifiedResponse = SupervisorService.instance.validateAndRefineAdvice(
+      rawAdvice: rawResponse,
+      monthlyIncome: monthlyIncome,
+      latestTransaction: latestTransaction,
+    );
+
+    _messages.add(verifiedResponse);
     _loading = false;
     notifyListeners();
   }

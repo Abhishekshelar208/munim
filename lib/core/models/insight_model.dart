@@ -43,6 +43,9 @@ class AdvisorMessage {
   final AdvisorMessageType type;
   final String? reason;
   final String? actionSuggestion;
+  final AdviceSeverity severity;
+  final SupervisorStatus status;
+  final bool isVerified;
 
   const AdvisorMessage({
     required this.id,
@@ -52,7 +55,12 @@ class AdvisorMessage {
     this.type = AdvisorMessageType.text,
     this.reason,
     this.actionSuggestion,
+    this.severity = AdviceSeverity.low,
+    this.status = SupervisorStatus.valid,
+    this.isVerified = false,
   });
 }
 
+enum AdviceSeverity { low, medium, high }
+enum SupervisorStatus { valid, corrected, blocked }
 enum AdvisorMessageType { text, comparison, alert, tip }

@@ -345,14 +345,37 @@ class _ChatBubble extends StatelessWidget {
           border: isUser
               ? null
               : Border.all(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.bgGlassBorder
-                      : AppColors.bgGlassBorderLight,
+                  color: message.severity == AdviceSeverity.high 
+                      ? AppColors.danger.withOpacity(0.5) 
+                      : message.severity == AdviceSeverity.medium 
+                          ? AppColors.warning.withOpacity(0.5)
+                          : Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.bgGlassBorder
+                              : AppColors.bgGlassBorderLight,
+                  width: message.severity == AdviceSeverity.low ? 1.0 : 1.5,
                 ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (!isUser && message.isVerified) ...[
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.shield_rounded, size: 12, color: AppColors.primaryGreen),
+                  const SizedBox(width: 4),
+                  Text(
+                    'System Checked',
+                    style: TextStyle(
+                      color: AppColors.primaryGreen.withOpacity(0.8),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
             Text(
               message.content,
               style: TextStyle(
