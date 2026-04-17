@@ -13,6 +13,7 @@ import 'widgets/net_profit_card.dart';
 import 'widgets/freedom_days_card.dart';
 import 'widgets/asset_liability_scale.dart';
 import 'widgets/smart_alert_card.dart';
+import 'widgets/behavior_insight_card.dart';
 import 'widgets/quick_add_sheet.dart';
 import 'widgets/transaction_tile.dart';
 
@@ -78,6 +79,18 @@ class DashboardScreen extends StatelessWidget {
               child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: SmartAlertCard(),
+              ),
+            ),
+          ),
+
+          // ── Behavior Insight ───────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: FadeInUp(
+              delay: const Duration(milliseconds: 350),
+              duration: const Duration(milliseconds: 400),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: BehaviorInsightCard(),
               ),
             ),
           ),

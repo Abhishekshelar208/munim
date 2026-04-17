@@ -9,6 +9,7 @@ import '../core/services/finance_service.dart';
 import '../core/services/storage_service.dart';
 import '../core/services/ai_service.dart';
 import '../core/localization/app_localizations.dart';
+import '../core/services/ml_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UserProvider
@@ -83,8 +84,18 @@ class TransactionProvider extends ChangeNotifier {
     required double amount,
     required TransactionType type,
     required TransactionCategory category,
+    required double monthlyIncome,
     String? note,
   }) async {
+    final now = DateTime.now();
+    final prediction = MLService.instance.predictBehavior(
+      amount: amount,
+      category: category,
+      monthlyIncome: monthlyIncome,
+      date: now,
+      monthlyTransactionCount: thisMonthTransactions.length,
+    );
+
     final t = TransactionModel(
       id: _uuid.v4(),
       title: title,
@@ -99,10 +110,11 @@ class TransactionProvider extends ChangeNotifier {
           type: type,
           category: category,
           roiLabel: RoiLabel.neutral,
-          date: DateTime.now(),
+          date: now,
         ),
       ),
-      date: DateTime.now(),
+      behaviorPrediction: prediction,
+      date: now,
       note: note,
     );
 

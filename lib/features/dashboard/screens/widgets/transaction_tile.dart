@@ -4,6 +4,7 @@ import '../../../../core/models/transaction_model.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_helpers.dart';
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/models/behavior_prediction.dart';
 import '../../../../shared/widgets/gradient_badge.dart';
 
 class TransactionTile extends StatelessWidget {
@@ -94,7 +95,10 @@ class TransactionTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 3),
-              _RoiChip(label: transaction.roiLabel),
+              if (transaction.behaviorPrediction != null)
+                _MlBehaviorChip(label: transaction.behaviorPrediction!.label)
+              else
+                _RoiChip(label: transaction.roiLabel),
             ],
           ),
         ],
@@ -151,3 +155,31 @@ class _RoiChip extends StatelessWidget {
     );
   }
 }
+
+class _MlBehaviorChip extends StatelessWidget {
+  final BehaviorLabel label;
+  const _MlBehaviorChip({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final (text, color) = switch (label) {
+      BehaviorLabel.good      => ('Good Fit', AppColors.success),
+      BehaviorLabel.neutral   => ('Average',   AppColors.warning),
+      BehaviorLabel.poor      => ('Poor Choice', AppColors.danger),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withOpacity(0.3), width: 0.5),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.w700),
+      ),
+    );
+  }
+}
+

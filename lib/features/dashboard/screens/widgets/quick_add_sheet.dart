@@ -83,12 +83,15 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
         ? _category.displayName
         : _titleCtrl.text.trim();
 
+    final monthlyIncome = context.read<UserProvider>().user.monthlyIncome;
+
     setState(() => _loading = true);
     await context.read<TransactionProvider>().addTransaction(
       title: title,
       amount: amount,
       type: _type,
       category: _category,
+      monthlyIncome: monthlyIncome,
       note: _noteCtrl.text.trim(),
     );
     if (mounted) Navigator.of(context).pop();

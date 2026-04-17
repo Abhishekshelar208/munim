@@ -1,3 +1,5 @@
+import 'behavior_prediction.dart';
+
 enum TransactionType { income, expense, investment, saving }
 
 enum TransactionCategory {
@@ -70,6 +72,7 @@ class TransactionModel {
   final TransactionType type;
   final TransactionCategory category;
   final RoiLabel roiLabel;
+  final BehaviorPrediction? behaviorPrediction;
   final DateTime date;
   final String? note;
 
@@ -80,6 +83,7 @@ class TransactionModel {
     required this.type,
     required this.category,
     required this.roiLabel,
+    this.behaviorPrediction,
     required this.date,
     this.note,
   });
@@ -96,6 +100,7 @@ class TransactionModel {
     'type': type.index,
     'category': category.index,
     'roiLabel': roiLabel.index,
+    'behaviorPrediction': behaviorPrediction?.toJson(),
     'date': date.toIso8601String(),
     'note': note,
   };
@@ -108,6 +113,9 @@ class TransactionModel {
         type: TransactionType.values[json['type'] as int],
         category: TransactionCategory.values[json['category'] as int],
         roiLabel: RoiLabel.values[json['roiLabel'] as int],
+        behaviorPrediction: json['behaviorPrediction'] != null 
+            ? BehaviorPrediction.fromJson(json['behaviorPrediction'] as Map<String, dynamic>)
+            : null,
         date: DateTime.parse(json['date'] as String),
         note: json['note'] as String?,
       );
