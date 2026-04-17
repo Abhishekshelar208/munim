@@ -8,6 +8,8 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../providers.dart';
 import '../../../shared/widgets/glass_card.dart';
 import '../../../shared/widgets/section_header.dart';
+import '../../../shared/widgets/gradient_badge.dart';
+import '../../../core/services/future_service.dart';
 
 class FutureInsightsScreen extends StatefulWidget {
   const FutureInsightsScreen({super.key});
@@ -20,57 +22,17 @@ class _FutureInsightsScreenState extends State<FutureInsightsScreen> {
   int _years = 10;
   final List<int> _yearOptions = [5, 10, 20];
 
-  List<_InsightScenario> _buildScenarios(
-      AppLocalizations l10n, double monthlyIncome) {
-    final sipAmount = monthlyIncome * 0.10;
-    return [
-      _InsightScenario(
-        emoji: '☕',
-        label: l10n.scenarioCoffeeLabel,
-        monthlyAmount: 1500,
-        description: l10n.scenarioCoffeeDesc,
-      ),
-      _InsightScenario(
-        emoji: '📱',
-        label: l10n.scenarioOttLabel,
-        monthlyAmount: 800,
-        description: l10n.scenarioOttDesc,
-      ),
-      _InsightScenario(
-        emoji: '🛍️',
-        label: l10n.scenarioShoppingLabel,
-        monthlyAmount: 3000,
-        description: l10n.scenarioShoppingDesc,
-      ),
-      _InsightScenario(
-        emoji: '🍕',
-        label: l10n.scenarioDiningLabel,
-        monthlyAmount: 2500,
-        description: l10n.scenarioDiningDesc,
-      ),
-      _InsightScenario(
-        emoji: '📈',
-        label: l10n.scenarioSipLabel,
-        monthlyAmount: sipAmount,
-        description: l10n.scenarioSipDesc(
-            CurrencyFormatter.compact(sipAmount)),
-        isPositive: true,
-      ),
-      _InsightScenario(
-        emoji: '💰',
-        label: l10n.scenarioEmergencyLabel,
-        monthlyAmount: monthlyIncome * 0.05,
-        description: l10n.scenarioEmergencyDesc,
-        isPositive: true,
-      ),
-    ];
+  List<FutureScenario> _buildScenarios(List<TransactionModel> txns, double monthlyIncome) {
+    return FutureService.instance.extractRealScenarios(txns, monthlyIncome);
   }
 
   @override
   Widget build(BuildContext context) {
     final user = context.watch<UserProvider>().user;
+    final txns = context.watch<TransactionProvider>().transactions.toList();
     final l10n = AppLocalizations.of(context);
-    final scenarios = _buildScenarios(l10n, user.monthlyIncome);
+    final scenarios = _buildScenarios(txns, user.monthlyIncome);
+    final rates = FutureService.instance.predictDynamicRates(txns);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -92,7 +54,7 @@ class _FutureInsightsScreenState extends State<FutureInsightsScreen> {
             sliver: SliverToBoxAdapter(
               child: FadeInUp(
                 duration: const Duration(milliseconds: 400),
-                child: _CompoundHero(income: user.monthlyIncome, years: _years),
+                child: _CompoundHero(income: user.monthlyIncome, years: _years, rate: rates.assumedReturnRate),
               ),
             ),
           ),
@@ -104,6 +66,7 @@ class _FutureInsightsScreenState extends State<FutureInsightsScreen> {
               return SectionHeader(
                 title: l.spendingVsOpportunityCost,
                 subtitle: l.spendingSubtitle,
+                trailing: const GradientBadge(label: '✨ AI Generated'),
               );
             }),
           ),
@@ -116,7 +79,7 @@ class _FutureInsightsScreenState extends State<FutureInsightsScreen> {
                 (ctx, i) => FadeInLeft(
                   delay: Duration(milliseconds: 50 * i),
                   duration: const Duration(milliseconds: 350),
-                  child: _ScenarioCard(scenario: scenarios[i], years: _years),
+                  child: _ScenarioCard(scenario: scenarios[i], years: _years, rate: rates.assumedReturnRate),
                 ),
                 childCount: scenarios.length,
               ),
@@ -130,7 +93,7 @@ class _FutureInsightsScreenState extends State<FutureInsightsScreen> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                 child: _InflationCard(
-                    years: _years, income: user.monthlyIncome),
+                    years: _years, income: user.monthlyIncome, inflation: rates.assumedInflation),
               ),
             ),
           ),
@@ -233,14 +196,15 @@ class _Header extends StatelessWidget {
 class _CompoundHero extends StatelessWidget {
   final double income;
   final int years;
+  final double rate;
 
-  const _CompoundHero({required this.income, required this.years});
+  const _CompoundHero({required this.income, required this.years, required this.rate});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final sip = income * 0.20;
-    final fv = FinanceService.instance.futureValue(sip * 12, years: years);
+    final fv = FinanceService.instance.futureValue(sip * 12, years: years, rate: rate);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -347,29 +311,13 @@ class _CompoundHero extends StatelessWidget {
   }
 }
 
-// ─── Scenario model ───────────────────────────────────────────────────────────
-class _InsightScenario {
-  final String emoji;
-  final String label;
-  final double monthlyAmount;
-  final String description;
-  final bool isPositive;
-
-  const _InsightScenario({
-    required this.emoji,
-    required this.label,
-    required this.monthlyAmount,
-    required this.description,
-    this.isPositive = false,
-  });
-}
-
 // ─── Scenario card ────────────────────────────────────────────────────────────
 class _ScenarioCard extends StatelessWidget {
-  final _InsightScenario scenario;
+  final FutureScenario scenario;
   final int years;
+  final double rate;
 
-  const _ScenarioCard({required this.scenario, required this.years});
+  const _ScenarioCard({required this.scenario, required this.years, required this.rate});
 
   @override
   Widget build(BuildContext context) {
@@ -377,6 +325,7 @@ class _ScenarioCard extends StatelessWidget {
     final fv = FinanceService.instance.futureValue(
       scenario.monthlyAmount * 12,
       years: years,
+      rate: rate,
     );
     final color =
         scenario.isPositive ? AppColors.primaryGreen : AppColors.danger;
@@ -468,14 +417,15 @@ class _ScenarioCard extends StatelessWidget {
 class _InflationCard extends StatelessWidget {
   final int years;
   final double income;
+  final double inflation;
 
-  const _InflationCard({required this.years, required this.income});
+  const _InflationCard({required this.years, required this.income, required this.inflation});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final inflationAdjusted =
-        FinanceService.instance.inflationAdjusted(income, years: years);
+        FinanceService.instance.inflationAdjusted(income, years: years, inflation: inflation);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

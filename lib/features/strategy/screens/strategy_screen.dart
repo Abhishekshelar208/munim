@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/services/finance_service.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../providers.dart';
@@ -10,6 +9,8 @@ import '../../../core/models/goal_model.dart';
 import '../../../core/models/transaction_model.dart';
 import '../../../shared/widgets/section_header.dart';
 import '../../../shared/widgets/gradient_badge.dart';
+import '../../../core/services/strategy_service.dart';
+import '../../../core/models/behavior_prediction.dart';
 
 class StrategyScreen extends StatelessWidget {
   const StrategyScreen({super.key});
@@ -18,13 +19,8 @@ class StrategyScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
-    final wealthRules = [
-      _WealthRule('💰', l10n.rule1Title, l10n.rule1Desc, AppColors.primaryGreen),
-      _WealthRule('🛡️', l10n.rule2Title, l10n.rule2Desc, AppColors.premiumGold),
-      _WealthRule('📈', l10n.rule3Title, l10n.rule3Desc, AppColors.accentBlue),
-      _WealthRule('🚫', l10n.rule4Title, l10n.rule4Desc, AppColors.danger),
-      _WealthRule('🔄', l10n.rule5Title, l10n.rule5Desc, AppColors.primaryGreen),
-    ];
+    final txns = context.watch<TransactionProvider>().transactions.toList();
+    final wealthRules = StrategyService.instance.generateWealthRules(txns);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -57,6 +53,49 @@ class StrategyScreen extends StatelessWidget {
 
           Consumer<GoalProvider>(
             builder: (_, goalProvider, __) {
+              if (goalProvider.goals.isEmpty) {
+                return SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Builder(builder: (c) {
+                       return GestureDetector(
+                         onTap: () {
+                            final i = context.read<UserProvider>().user.monthlyIncome;
+                            final aiGoals = StrategyService.instance.generatePersonalizedGoals(i);
+                            for (var g in aiGoals) {
+                               goalProvider.addGoal(g);
+                            }
+                         },
+                         child: Container(
+                           padding: const EdgeInsets.all(20),
+                           decoration: BoxDecoration(
+                             color: AppColors.primaryGreen.withOpacity(0.08),
+                             borderRadius: BorderRadius.circular(16),
+                             border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3)),
+                           ),
+                           child: const Center(
+                             child: Row(
+                               mainAxisSize: MainAxisSize.min,
+                               children: [
+                                 Text('✨', style: TextStyle(fontSize: 18)),
+                                 SizedBox(width: 8),
+                                 Text(
+                                   'Generate Personalized AI Goals',
+                                   style: TextStyle(
+                                     color: AppColors.primaryGreen,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14,
+                                   ),
+                                 ),
+                               ],
+                             ),
+                           ),
+                         ),
+                       );
+                    }),
+                  ),
+                );
+              }
               return SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 sliver: SliverList(
@@ -116,6 +155,7 @@ class StrategyScreen extends StatelessWidget {
             child: Builder(builder: (ctx) {
               return SectionHeader(
                 title: AppLocalizations.of(ctx).wealthBuildingRules,
+                trailing: const GradientBadge(label: '✨ AI Generated'),
               );
             }),
           ),
@@ -179,7 +219,7 @@ class _AllocationCard extends StatelessWidget {
     final txnProvider = context.watch<TransactionProvider>();
     final l10n = AppLocalizations.of(context);
     final allocation =
-        FinanceService.instance.recommendAllocation(user.monthlyIncome);
+        StrategyService.instance.generateDynamicAllocation(user.monthlyIncome, txnProvider.thisMonthTransactions);
 
     // suppress unused warning — kept for future use
     // ignore: unused_local_variable
@@ -222,7 +262,7 @@ class _AllocationCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              const GradientBadge(label: '50-30-20 Rule'),
+              const GradientBadge(label: '✨ AI Generated'),
             ],
           ),
           const SizedBox(height: 20),
@@ -428,12 +468,11 @@ class _ScoredDecisionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final (label, color, icon) = switch (transaction.roiLabel) {
-      RoiLabel.excellent => (l10n.scoreExcellent, AppColors.primaryGreen,   '🏆'),
-      RoiLabel.good      => (l10n.scoreGood,      AppColors.accentBlueLight, '✅'),
-      RoiLabel.neutral   => (l10n.scoreNeutral,   AppColors.textMuted,       '➡️'),
-      RoiLabel.poor      => (l10n.scoreReview,    AppColors.premiumGold,     '⚠️'),
-      RoiLabel.terrible  => (l10n.scoreBadMove,   AppColors.danger,          '❌'),
+    final predLabel = transaction.behaviorPrediction?.label ?? BehaviorLabel.neutral;
+    final (label, color, icon) = switch (predLabel) {
+      BehaviorLabel.good   => (l10n.scoreExcellent, AppColors.primaryGreen,   '🏆'),
+      BehaviorLabel.neutral=> (l10n.scoreGood,      AppColors.accentBlueLight, '✅'),
+      BehaviorLabel.poor   => (l10n.scoreReview,    AppColors.danger,          '⚠️'),
     };
 
     return Container(
@@ -507,28 +546,22 @@ class _EmptyScoreCard extends StatelessWidget {
   }
 }
 
-// ─── Wealth Rule tile ─────────────────────────────────────────────────────────
-class _WealthRule {
-  final String emoji;
-  final String title;
-  final String description;
-  final Color color;
-  const _WealthRule(this.emoji, this.title, this.description, this.color);
 }
 
 class _WealthRuleTile extends StatelessWidget {
-  final _WealthRule rule;
+  final WealthRule rule;
   const _WealthRuleTile({required this.rule});
 
   @override
   Widget build(BuildContext context) {
+    final color = rule.isStrict ? AppColors.danger : AppColors.primaryGreen;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: rule.color.withValues(alpha: 0.06),
+        color: color.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: rule.color.withValues(alpha: 0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -542,7 +575,7 @@ class _WealthRuleTile extends StatelessWidget {
                 Text(
                   rule.title,
                   style: TextStyle(
-                    color: rule.color,
+                    color: color,
                     fontWeight: FontWeight.w700,
                     fontSize: 13,
                   ),

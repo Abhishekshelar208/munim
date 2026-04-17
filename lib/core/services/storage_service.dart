@@ -56,7 +56,7 @@ class StorageService {
   Future<List<GoalModel>> loadGoals() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_goalsKey);
-    if (raw == null) return GoalModel.presets();
+    if (raw == null) return [];
     final decoded = jsonDecode(raw) as List;
     return decoded
         .map((e) => GoalModel.fromJson(e as Map<String, dynamic>))

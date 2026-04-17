@@ -2,6 +2,9 @@ import 'dart:developer' as developer;
 import '../models/insight_model.dart';
 import '../models/transaction_model.dart';
 import '../models/behavior_prediction.dart';
+import '../models/user_model.dart';
+import 'ml_service.dart';
+import 'finance_service.dart' show SmartAlert, AlertType, FinanceService;
 
 class SupervisorService {
   SupervisorService._();
@@ -105,5 +108,56 @@ class SupervisorService {
 
   void _logAction(String reason) {
      developer.log('[Supervisor] $reason', name: 'SupervisorAgent');
+  }
+
+  /// Replaces FinanceService static alerts with dynamic AI condition checks
+  List<SmartAlert> generateSmartAlerts({
+    required UserModel user,
+    required List<TransactionModel> transactions,
+    required double totalSavings,
+  }) {
+    final alerts = <SmartAlert>[];
+    if (user.monthlyIncome <= 0 || transactions.isEmpty) return alerts;
+
+    // Check behavior using MLService to build context
+    int poorCount = 0;
+    double discretionarySpend = 0.0;
+    
+    for (var t in transactions.where((t) => t.date.month == DateTime.now().month)) {
+       final pred = MLService.instance.predictBehavior(
+          amount: t.amount, category: t.category, monthlyIncome: user.monthlyIncome, date: t.date, monthlyTransactionCount: transactions.length);
+       if (pred.label == BehaviorLabel.poor) poorCount++;
+       if (!t.category.isEssential && t.type == TransactionType.expense) discretionarySpend += t.amount;
+    }
+
+    if (poorCount > 3) {
+      alerts.add(SmartAlert(
+        type: AlertType.danger,
+        title: 'High Risk Behavior',
+        message: 'Supervisor detected $poorCount flagged impulsive purchases this month. Check Advisor.',
+        emoji: '🔴',
+      ));
+    }
+
+    if (discretionarySpend > user.monthlyIncome * 0.4) {
+      alerts.add(SmartAlert(
+        type: AlertType.warning,
+        title: 'Discretionary Leak',
+        message: 'AI tracking shows ${((discretionarySpend / user.monthlyIncome)*100).toStringAsFixed(0)}% of income spent on wants.',
+        emoji: '⚠️',
+      ));
+    }
+
+    final investmentTotal = transactions.where((t) => t.type == TransactionType.investment).fold(0.0, (s, t) => s + t.amount);
+    if (investmentTotal == 0) {
+      alerts.add(const SmartAlert(
+        type: AlertType.info,
+        title: 'Zero Equity Exposure',
+        message: 'Mindset Model shows a purely consumptive pattern. Start small SIPs to build behavior.',
+        emoji: '📈',
+      ));
+    }
+
+    return alerts;
   }
 }

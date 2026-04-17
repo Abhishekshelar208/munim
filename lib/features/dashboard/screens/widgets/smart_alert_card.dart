@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/services/finance_service.dart';
-import '../../../../core/localization/app_localizations.dart';
+import 'package:provider/provider.dart';
 import '../../../../providers.dart';
+import '../../../../core/services/supervisor_service.dart';
+import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/services/finance_service.dart' show SmartAlert, AlertType;
 
 class SmartAlertCard extends StatelessWidget {
   const SmartAlertCard({super.key});
@@ -14,8 +16,8 @@ class SmartAlertCard extends StatelessWidget {
     final txnProvider = context.watch<TransactionProvider>();
     final l10n = AppLocalizations.of(context);
 
-    final alerts = FinanceService.instance.generateAlerts(
-      monthlyIncome: user.monthlyIncome,
+    final alerts = SupervisorService.instance.generateSmartAlerts(
+      user: user,
       transactions: txnProvider.transactions.toList(),
       totalSavings: txnProvider.totalSavings,
     );
@@ -37,6 +39,30 @@ class SmartAlertCard extends StatelessWidget {
                   color: AppColors.textSecondary,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGreen.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('✨', style: TextStyle(fontSize: 10)),
+                    SizedBox(width: 4),
+                    Text(
+                      'AI Generated',
+                      style: TextStyle(
+                        color: AppColors.primaryGreen,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

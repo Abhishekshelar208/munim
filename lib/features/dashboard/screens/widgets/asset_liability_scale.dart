@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/services/finance_service.dart';
+import '../../../../core/services/ml_service.dart';
+import '../../../../core/models/behavior_prediction.dart';
+import '../../../../core/models/transaction_model.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../providers.dart';
@@ -12,11 +14,31 @@ class AssetLiabilityScale extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<UserProvider>().user;
     final txns = context.watch<TransactionProvider>().transactions.toList();
     final l10n = AppLocalizations.of(context);
 
-    final assets = FinanceService.instance.calculateTotalAssets(txns);
-    final liabilities = FinanceService.instance.calculateTotalLiabilities(txns);
+    double assets = 0;
+    double liabilities = 0;
+
+    for (var t in txns) {
+      final pred = MLService.instance.predictBehavior(
+          amount: t.amount,
+          category: t.category,
+          monthlyIncome: user.monthlyIncome,
+          date: t.date,
+          monthlyTransactionCount: txns.length,
+      );
+      
+      if (pred.label == BehaviorLabel.good || t.category.isInvestment) {
+         assets += t.amount;
+      } else if (pred.label == BehaviorLabel.poor) {
+         liabilities += t.amount;
+      } else if (!t.category.isEssential && t.type == TransactionType.expense) {
+         liabilities += (t.amount * 0.5); // Neutral discretionary partially counts as liability
+      }
+    }
+
     final total = assets + liabilities;
     final assetFraction = total == 0 ? 0.5 : (assets / total).clamp(0, 1);
 
@@ -43,6 +65,30 @@ class AssetLiabilityScale extends StatelessWidget {
                   color: AppColors.textSecondary,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.accentBlueLight.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: AppColors.accentBlueLight.withOpacity(0.3)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('✨', style: TextStyle(fontSize: 10)),
+                    SizedBox(width: 4),
+                    Text(
+                      'Mindset Evaluated',
+                      style: TextStyle(
+                        color: AppColors.accentBlueLight,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
