@@ -21,15 +21,21 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
   void _send(String text) {
     if (text.trim().isEmpty) return;
     _textCtrl.clear();
-    final user = context.read<UserProvider>().user;
+    
+    final userProvider = context.read<UserProvider>();
+    final txnProvider = context.read<TransactionProvider>();
+    
+    final recentTxn = txnProvider.transactions.isNotEmpty 
+        ? txnProvider.transactions.first 
+        : null;
 
     context.read<AdvisorProvider>().sendMessage(
       text,
-      context: {
-        'monthlyIncome': user.monthlyIncome,
-        'userType': user.userType.toString(),
-        'goals': user.goals.join(', '),
-      },
+      monthlyIncome: userProvider.user.monthlyIncome,
+      monthlyExpenses: txnProvider.thisMonthExpenses,
+      totalSavings: txnProvider.totalSavings,
+      totalInvestments: txnProvider.thisMonthInvestments,
+      latestTransaction: recentTxn,
     );
     _scrollToBottom();
   }
@@ -59,12 +65,11 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
 
     // Build quick prompts from l10n
     final quickPrompts = [
+      _LocalQuickPrompt(label: 'Analyze my finances', query: 'Analyze my finances'),
       _LocalQuickPrompt(label: l10n.promptInvestLabel,    query: l10n.promptInvestQuery),
       _LocalQuickPrompt(label: l10n.promptEmergencyLabel, query: l10n.promptEmergencyQuery),
       _LocalQuickPrompt(label: l10n.promptEmiLabel,       query: l10n.promptEmiQuery),
       _LocalQuickPrompt(label: l10n.promptSipFdLabel,     query: l10n.promptSipFdQuery),
-      _LocalQuickPrompt(label: l10n.prompt503020Label,    query: l10n.prompt503020Query),
-      _LocalQuickPrompt(label: l10n.promptLicLabel,       query: l10n.promptLicQuery),
     ];
 
     return Scaffold(
@@ -345,15 +350,84 @@ class _ChatBubble extends StatelessWidget {
                       : AppColors.bgGlassBorderLight,
                 ),
         ),
-        child: Text(
-          message.content,
-          style: TextStyle(
-            color: isUser
-                ? Colors.black
-                : Theme.of(context).colorScheme.onSurface,
-            fontSize: 14,
-            height: 1.5,
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              message.content,
+              style: TextStyle(
+                color: isUser
+                    ? Colors.black
+                    : Theme.of(context).colorScheme.onSurface,
+                fontSize: 14,
+                fontWeight: isUser ? FontWeight.w500 : FontWeight.w700,
+                height: 1.5,
+              ),
+            ),
+            
+            if (message.reason != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardTheme.color,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Theme.of(context).brightness == Brightness.dark 
+                        ? AppColors.bgGlassBorder 
+                        : AppColors.bgGlassBorderLight,
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.info_outline_rounded, size: 16, color: AppColors.textSecondary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        message.reason!,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            if (message.actionSuggestion != null) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGreen.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.primaryGreen),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        message.actionSuggestion!,
+                        style: const TextStyle(
+                          color: AppColors.primaryGreen,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );

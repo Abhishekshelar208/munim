@@ -8,6 +8,7 @@ import '../core/models/insight_model.dart';
 import '../core/services/finance_service.dart';
 import '../core/services/storage_service.dart';
 import '../core/services/ai_service.dart';
+import '../core/services/advisor_service.dart';
 import '../core/localization/app_localizations.dart';
 import '../core/services/ml_service.dart';
 
@@ -198,7 +199,13 @@ class AdvisorProvider extends ChangeNotifier {
     ));
   }
 
-  Future<void> sendMessage(String text, {Map<String, dynamic>? context}) async {
+  Future<void> sendMessage(String text, {
+    required double monthlyIncome,
+    required double monthlyExpenses,
+    required double totalSavings,
+    required double totalInvestments,
+    required TransactionModel? latestTransaction,
+  }) async {
     _messages.add(AdvisorMessage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       content: text,
@@ -208,7 +215,22 @@ class AdvisorProvider extends ChangeNotifier {
     _loading = true;
     notifyListeners();
 
-    final response = await AIService.instance.sendMessage(text, userContext: context);
+    await Future.delayed(const Duration(milliseconds: 800));
+
+    AdvisorMessage response;
+    final lower = text.toLowerCase();
+    if (lower.contains('analyze') || lower.contains('what should i do') || lower.contains('diagnostic')) {
+      response = AdvisorService.instance.analyzeState(
+        monthlyIncome: monthlyIncome,
+        monthlyExpenses: monthlyExpenses,
+        totalSavings: totalSavings,
+        totalInvestments: totalInvestments,
+        latestTransaction: latestTransaction,
+      );
+    } else {
+      response = AdvisorService.instance.getFallbackResponse(text);
+    }
+
     _messages.add(response);
     _loading = false;
     notifyListeners();

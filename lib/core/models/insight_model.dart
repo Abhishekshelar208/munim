@@ -41,6 +41,8 @@ class AdvisorMessage {
   final bool isUser;
   final DateTime timestamp;
   final AdvisorMessageType type;
+  final String? reason;
+  final String? actionSuggestion;
 
   const AdvisorMessage({
     required this.id,
@@ -48,6 +50,8 @@ class AdvisorMessage {
     required this.isUser,
     required this.timestamp,
     this.type = AdvisorMessageType.text,
+    this.reason,
+    this.actionSuggestion,
   });
 }
 
