@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/finance_service.dart';
 import '../../../../core/models/transaction_model.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../providers.dart';
 import '../../../../shared/widgets/glass_card.dart';
 
@@ -13,6 +14,7 @@ class FreedomDaysCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = context.watch<UserProvider>().user;
     final txnProvider = context.watch<TransactionProvider>();
+    final l10n = AppLocalizations.of(context);
 
     final essentialExpenses = txnProvider.thisMonthTransactions
         .where((t) =>
@@ -26,13 +28,13 @@ class FreedomDaysCard extends StatelessWidget {
           : essentialExpenses,
     );
 
-    final level = freedomDays < 30
-        ? ('🔴', 'Critical')
+    final (emoji, levelText) = freedomDays < 30
+        ? ('🔴', l10n.levelCritical)
         : freedomDays < 90
-            ? ('🟡', 'Low')
+            ? ('🟡', l10n.levelLow)
             : freedomDays < 180
-                ? ('🟢', 'Safe')
-                : ('🏆', 'Strong');
+                ? ('🟢', l10n.levelSafe)
+                : ('🏆', l10n.levelStrong);
 
     return SolidCard(
       padding: const EdgeInsets.all(16),
@@ -44,7 +46,7 @@ class FreedomDaysCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: AppColors.premiumGold.withOpacity(0.15),
+                  color: AppColors.premiumGold.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Text('🛡️', style: TextStyle(fontSize: 14)),
@@ -61,9 +63,9 @@ class FreedomDaysCard extends StatelessWidget {
               height: 1,
             ),
           ),
-          const Text(
-            'Days of Freedom',
-            style: TextStyle(
+          Text(
+            l10n.daysOfFreedom,
+            style: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 10,
               fontWeight: FontWeight.w500,
@@ -71,7 +73,7 @@ class FreedomDaysCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '${level.$1} ${level.$2}',
+            '$emoji $levelText',
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 11,

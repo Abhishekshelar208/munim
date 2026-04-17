@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../models/transaction_model.dart';
 import '../models/goal_model.dart';
@@ -10,6 +11,8 @@ class StorageService {
   static const String _goalsKey = 'muni_goals';
   static const String _savingsKey = 'muni_total_savings';
   static const String _onboardedKey = 'muni_onboarding_done';
+  static const String _themeKey = 'muni_theme_mode';
+  static const String _languageKey = 'muni_language_code';
 
   // ── User ──────────────────────────────────────────────────────────────────
   Future<void> saveUser(UserModel user) async {
@@ -80,6 +83,31 @@ class StorageService {
   Future<void> markOnboarded() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_onboardedKey, true);
+  }
+
+  // ── Theme ─────────────────────────────────────────────────────────────────
+  Future<void> saveThemeMode(ThemeMode mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_themeKey, mode.name);
+  }
+
+  Future<ThemeMode> loadThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_themeKey);
+    return ThemeMode.values.firstWhere(
+      (e) => e.name == raw,
+      orElse: () => ThemeMode.system,
+    );
+  }
+
+  Future<void> saveLanguageCode(String code) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_languageKey, code);
+  }
+
+  Future<String> loadLanguageCode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_languageKey) ?? 'en';
   }
 
   Future<void> clearAll() async {

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/models/transaction_model.dart';
 import '../../../../providers.dart';
+import '../../../../core/localization/app_localizations.dart';
 
 class QuickAddSheet extends StatefulWidget {
   const QuickAddSheet({super.key});
@@ -20,11 +21,12 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
   TransactionCategory _category = TransactionCategory.food;
   bool _loading = false;
 
-  static const _typeOptions = [
-    (TransactionType.income,     '📥', 'Income'),
-    (TransactionType.expense,    '📤', 'Expense'),
-    (TransactionType.investment, '📈', 'Invest'),
-    (TransactionType.saving,     '🏦', 'Save'),
+  // Type options built dynamically in build() to use l10n
+  List<(TransactionType, String, String)> _typeOptions(AppLocalizations l10n) => [
+    (TransactionType.income,     '📥', l10n.income),
+    (TransactionType.expense,    '📤', l10n.expense),
+    (TransactionType.investment, '📈', l10n.invest),
+    (TransactionType.saving,     '🏦', l10n.save),
   ];
 
   // Category map per type
@@ -73,7 +75,7 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
     final amount = double.tryParse(_amountCtrl.text);
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid amount')),
+        SnackBar(content: Text(AppLocalizations.of(context).enterValidAmount)),
       );
       return;
     }
@@ -94,12 +96,14 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final typeOpts = _typeOptions(l10n);
     final cats = _categoryMap[_type] ?? [];
 
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color ?? AppColors.bgCard,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
@@ -123,9 +127,9 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Add Transaction',
-            style: TextStyle(
+          Text(
+            l10n.addTransaction,
+            style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -135,7 +139,7 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
 
           // Type selector
           Row(
-            children: _typeOptions.map((opt) {
+            children: typeOpts.map((opt) {
               final selected = _type == opt.$1;
               return Expanded(
                 child: GestureDetector(
@@ -146,12 +150,12 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     margin: EdgeInsets.only(
-                      right: opt != _typeOptions.last ? 8 : 0,
+                      right: opt != typeOpts.last ? 8 : 0,
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
                       gradient: selected ? AppColors.primaryGradient : null,
-                      color: selected ? null : AppColors.bgCardAlt,
+                      color: selected ? null : Theme.of(context).cardTheme.color ?? Theme.of(context).inputDecorationTheme.fillColor ?? AppColors.bgCardAlt,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -223,7 +227,7 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                     gradient: sel ? AppColors.greenGradient : null,
-                    color: sel ? null : AppColors.bgCardAlt,
+                    color: sel ? null : Theme.of(context).cardTheme.color ?? Theme.of(context).inputDecorationTheme.fillColor ?? AppColors.bgCardAlt,
                     border: Border.all(
                       color: sel
                           ? Colors.transparent

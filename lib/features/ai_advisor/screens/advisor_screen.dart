@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/services/ai_service.dart';
+
 import '../../../core/models/insight_model.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../providers.dart';
 
 class AdvisorScreen extends StatefulWidget {
@@ -54,6 +55,18 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    // Build quick prompts from l10n
+    final quickPrompts = [
+      _LocalQuickPrompt(label: l10n.promptInvestLabel,    query: l10n.promptInvestQuery),
+      _LocalQuickPrompt(label: l10n.promptEmergencyLabel, query: l10n.promptEmergencyQuery),
+      _LocalQuickPrompt(label: l10n.promptEmiLabel,       query: l10n.promptEmiQuery),
+      _LocalQuickPrompt(label: l10n.promptSipFdLabel,     query: l10n.promptSipFdQuery),
+      _LocalQuickPrompt(label: l10n.prompt503020Label,    query: l10n.prompt503020Query),
+      _LocalQuickPrompt(label: l10n.promptLicLabel,       query: l10n.promptLicQuery),
+    ];
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Column(
@@ -62,7 +75,7 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
           _AdvisorHeader(),
 
           // Quick prompts
-          _QuickPrompts(onTap: _send),
+          _QuickPrompts(prompts: quickPrompts, onTap: _send),
 
           // Chat messages
           Expanded(
@@ -70,16 +83,22 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
               builder: (_, advisor, __) {
                 WidgetsBinding.instance
                     .addPostFrameCallback((_) => _scrollToBottom());
+
+                // Empty state — show welcome message
+                if (advisor.messages.isEmpty && !advisor.loading) {
+                  return _WelcomeEmpty(l10n: l10n, quickPrompts: quickPrompts, onTap: _send);
+                }
+
                 return ListView.builder(
                   controller: _scrollCtrl,
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16, vertical: 8),
                   physics: const BouncingScrollPhysics(),
-                  itemCount: advisor.messages.length +
-                      (advisor.loading ? 1 : 0),
+                  itemCount:
+                      advisor.messages.length + (advisor.loading ? 1 : 0),
                   itemBuilder: (ctx, i) {
                     if (i == advisor.messages.length) {
-                      return const _TypingIndicator();
+                      return _TypingIndicator(l10n: l10n);
                     }
                     final msg = advisor.messages[i];
                     return FadeInUp(
@@ -100,15 +119,25 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
   }
 }
 
+// ─── Local quick prompt model ─────────────────────────────────────────────────
+class _LocalQuickPrompt {
+  final String label;
+  final String query;
+  const _LocalQuickPrompt({required this.label, required this.query});
+}
+
 // ─── Header ──────────────────────────────────────────────────────────────────
 class _AdvisorHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: EdgeInsets.fromLTRB(
           20, MediaQuery.of(context).padding.top + 16, 20, 16),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.bgGlassBorder)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color ?? AppColors.bgCard,
+        border:
+            const Border(top: BorderSide(color: AppColors.bgGlassBorder)),
       ),
       child: Row(
         children: [
@@ -127,10 +156,10 @@ class _AdvisorHeader extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'MUNI Advisor',
+              Text(
+                l10n.muniAdvisor,
                 style: TextStyle(
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                 ),
@@ -145,7 +174,7 @@ class _AdvisorHeader extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primaryGreen.withOpacity(0.6),
+                          color: AppColors.primaryGreen.withValues(alpha: 0.6),
                           blurRadius: 6,
                           spreadRadius: 1,
                         ),
@@ -153,19 +182,23 @@ class _AdvisorHeader extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 5),
-                  const Text(
-                    'AI • Always Available',
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  Text(
+                    l10n.aiAlwaysAvailable,
+                    style: const TextStyle(
+                        color: AppColors.textMuted, fontSize: 12),
                   ),
                 ],
               ),
             ],
           ),
           const Spacer(),
-          GestureDetector(
-            onTap: () => context.read<AdvisorProvider>().clear(),
-            child: const Icon(Icons.refresh_rounded,
-                color: AppColors.textMuted, size: 22),
+          Tooltip(
+            message: l10n.clearChat,
+            child: GestureDetector(
+              onTap: () => context.read<AdvisorProvider>().clear(),
+              child: const Icon(Icons.refresh_rounded,
+                  color: AppColors.textMuted, size: 22),
+            ),
           ),
         ],
       ),
@@ -173,11 +206,12 @@ class _AdvisorHeader extends StatelessWidget {
   }
 }
 
-// ─── Quick prompts ────────────────────────────────────────────────────────────
+// ─── Quick prompts row ────────────────────────────────────────────────────────
 class _QuickPrompts extends StatelessWidget {
+  final List<_LocalQuickPrompt> prompts;
   final ValueChanged<String> onTap;
 
-  const _QuickPrompts({required this.onTap});
+  const _QuickPrompts({required this.prompts, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -185,18 +219,21 @@ class _QuickPrompts extends StatelessWidget {
       height: 42,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         physics: const BouncingScrollPhysics(),
-        itemCount: AIService.quickPrompts.length,
+        itemCount: prompts.length,
         itemBuilder: (ctx, i) {
-          final p = AIService.quickPrompts[i];
+          final p = prompts[i];
           return GestureDetector(
             onTap: () => onTap(p.query),
             child: Container(
               margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.bgCard,
+                color: Theme.of(context).cardTheme.color ??
+                    AppColors.bgCard,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: AppColors.bgGlassBorder),
               ),
@@ -211,6 +248,52 @@ class _QuickPrompts extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+// ─── Welcome / Empty state ────────────────────────────────────────────────────
+class _WelcomeEmpty extends StatelessWidget {
+  final AppLocalizations l10n;
+  final List<_LocalQuickPrompt> quickPrompts;
+  final ValueChanged<String> onTap;
+
+  const _WelcomeEmpty(
+      {required this.l10n,
+      required this.quickPrompts,
+      required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          const SizedBox(height: 24),
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: const Center(
+              child: Text('🧠', style: TextStyle(fontSize: 36)),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            l10n.advisorWelcome,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 14,
+              height: 1.6,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -236,7 +319,9 @@ class _ChatBubble extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           gradient: isUser ? AppColors.primaryGradient : null,
-          color: isUser ? null : AppColors.bgCard,
+          color: isUser
+              ? null
+              : Theme.of(context).cardTheme.color ?? AppColors.bgCard,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(18),
             topRight: const Radius.circular(18),
@@ -250,7 +335,9 @@ class _ChatBubble extends StatelessWidget {
         child: Text(
           message.content,
           style: TextStyle(
-            color: isUser ? Colors.black : AppColors.textPrimary,
+            color: isUser
+                ? Colors.black
+                : Theme.of(context).colorScheme.onSurface,
             fontSize: 14,
             height: 1.5,
           ),
@@ -262,7 +349,8 @@ class _ChatBubble extends StatelessWidget {
 
 // ─── Typing indicator ─────────────────────────────────────────────────────────
 class _TypingIndicator extends StatefulWidget {
-  const _TypingIndicator();
+  final AppLocalizations l10n;
+  const _TypingIndicator({required this.l10n});
 
   @override
   State<_TypingIndicator> createState() => _TypingIndicatorState();
@@ -295,30 +383,40 @@ class _TypingIndicatorState extends State<_TypingIndicator>
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: AppColors.bgCard,
+          color: Theme.of(context).cardTheme.color ?? AppColors.bgCard,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: AppColors.bgGlassBorder),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
-          children: List.generate(3, (i) {
-            return AnimatedBuilder(
-              animation: _ctrl,
-              builder: (_, __) {
-                final offset = ((_ctrl.value * 3 - i) % 1).clamp(0, 0.5);
-                return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 2),
-                  width: 7,
-                  height: 7,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryGreen
-                        .withOpacity(0.4 + offset as double),
-                    shape: BoxShape.circle,
-                  ),
-                );
-              },
-            );
-          }),
+          children: [
+            // Three bouncing dots
+            ...List.generate(3, (i) {
+              return AnimatedBuilder(
+                animation: _ctrl,
+                builder: (_, __) {
+                  final offset =
+                      ((_ctrl.value * 3 - i) % 1).clamp(0, 0.5);
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    width: 7,
+                    height: 7,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryGreen
+                          .withValues(alpha: 0.4 + (offset as double)),
+                      shape: BoxShape.circle,
+                    ),
+                  );
+                },
+              );
+            }),
+            const SizedBox(width: 8),
+            Text(
+              widget.l10n.muniIsTyping,
+              style: const TextStyle(
+                  color: AppColors.textMuted, fontSize: 11),
+            ),
+          ],
         ),
       ),
     );
@@ -334,23 +432,28 @@ class _ChatInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: EdgeInsets.fromLTRB(
           16, 10, 16, MediaQuery.of(context).padding.bottom + 10),
-      decoration: const BoxDecoration(
-        color: AppColors.bgCard,
-        border: Border(top: BorderSide(color: AppColors.bgGlassBorder)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color ?? AppColors.bgCard,
+        border:
+            const Border(top: BorderSide(color: AppColors.bgGlassBorder)),
       ),
       child: Row(
         children: [
           Expanded(
             child: TextField(
               controller: controller,
-              style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 14),
               onSubmitted: onSend,
-              decoration: const InputDecoration(
-                hintText: 'Ask MUNI anything...',
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: InputDecoration(
+                hintText: l10n.askMuniAnything,
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 10),
               ),
             ),
           ),
@@ -364,7 +467,8 @@ class _ChatInput extends StatelessWidget {
                 gradient: AppColors.primaryGradient,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.send_rounded, color: Colors.black, size: 18),
+              child: const Icon(Icons.send_rounded,
+                  color: Colors.black, size: 18),
             ),
           ),
         ],

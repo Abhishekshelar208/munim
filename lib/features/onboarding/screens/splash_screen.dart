@@ -107,7 +107,7 @@ class _SplashScreenState extends State<SplashScreen>
                   shaderCallback: (bounds) =>
                       AppColors.primaryGradient.createShader(bounds),
                   child: const Text(
-                    'MUNI-M',
+                    'MUNI-M (1.0)',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 36,
@@ -117,7 +117,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(
+                const Text(
                   'The Intelligence Behind Your Money',
                   style: TextStyle(
                     color: AppColors.textSecondary,

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../core/models/user_model.dart';
@@ -8,6 +8,7 @@ import '../core/models/insight_model.dart';
 import '../core/services/finance_service.dart';
 import '../core/services/storage_service.dart';
 import '../core/services/ai_service.dart';
+import '../core/localization/app_localizations.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UserProvider
@@ -204,6 +205,62 @@ class AdvisorProvider extends ChangeNotifier {
   void clear() {
     _messages.clear();
     _addWelcome();
+    notifyListeners();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ThemeProvider
+// ─────────────────────────────────────────────────────────────────────────────
+class ThemeProvider extends ChangeNotifier {
+  final StorageService _storage;
+  ThemeMode _themeMode = ThemeMode.system;
+
+  ThemeProvider(this._storage);
+
+  ThemeMode get themeMode => _themeMode;
+
+  Future<void> init() async {
+    final saved = await _storage.loadThemeMode();
+    _themeMode = saved;
+    notifyListeners();
+  }
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    _themeMode = mode;
+    await _storage.saveThemeMode(mode);
+    notifyListeners();
+  }
+
+  void toggleTheme(bool isDark) {
+    setThemeMode(isDark ? ThemeMode.dark : ThemeMode.light);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LanguageProvider
+// ─────────────────────────────────────────────────────────────────────────────
+class LanguageProvider extends ChangeNotifier {
+  final StorageService _storage;
+  Locale _locale = const Locale('en');
+
+  LanguageProvider(this._storage);
+
+  Locale get locale => _locale;
+  String get languageCode => _locale.languageCode;
+
+  static List<Locale> get supportedLocales =>
+      AppLocalizations.supportedLocales;
+
+  Future<void> init() async {
+    final saved = await _storage.loadLanguageCode();
+    _locale = Locale(saved);
+    notifyListeners();
+  }
+
+  Future<void> setLocale(Locale locale) async {
+    _locale = locale;
+    await _storage.saveLanguageCode(locale.languageCode);
     notifyListeners();
   }
 }

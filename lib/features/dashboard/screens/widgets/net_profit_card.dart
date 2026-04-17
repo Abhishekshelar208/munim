@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../providers.dart';
 import '../../../../shared/widgets/glass_card.dart';
 import '../../../../shared/widgets/gradient_badge.dart';
@@ -13,6 +14,7 @@ class NetProfitCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = context.watch<UserProvider>().user;
     final txnProvider = context.watch<TransactionProvider>();
+    final l10n = AppLocalizations.of(context);
 
     final income = user.monthlyIncome;
     final expenses = txnProvider.thisMonthExpenses;
@@ -32,8 +34,8 @@ class NetProfitCard extends StatelessWidget {
         ),
         border: Border.all(
           color: isPositive
-              ? AppColors.primaryGreen.withOpacity(0.3)
-              : AppColors.danger.withOpacity(0.3),
+              ? AppColors.primaryGreen.withValues(alpha: 0.3)
+              : AppColors.danger.withValues(alpha: 0.3),
         ),
       ),
       padding: const EdgeInsets.all(20),
@@ -44,9 +46,9 @@ class NetProfitCard extends StatelessWidget {
             children: [
               const Text('📊', style: TextStyle(fontSize: 18)),
               const SizedBox(width: 8),
-              const Text(
-                'Daily Net Profit',
-                style: TextStyle(
+              Text(
+                l10n.dailyNetProfit,
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -54,7 +56,7 @@ class NetProfitCard extends StatelessWidget {
               ),
               const Spacer(),
               TonalBadge(
-                label: isPositive ? 'On Track' : 'Over Budget',
+                label: isPositive ? l10n.onTrack : l10n.overBudget,
                 color: isPositive ? AppColors.primaryGreen : AppColors.danger,
                 icon: isPositive
                     ? Icons.trending_up_rounded
@@ -69,9 +71,7 @@ class NetProfitCard extends StatelessWidget {
               Text(
                 CurrencyFormatter.compact(profit.abs()),
                 style: TextStyle(
-                  color: isPositive
-                      ? AppColors.primaryGreen
-                      : AppColors.danger,
+                  color: isPositive ? AppColors.primaryGreen : AppColors.danger,
                   fontSize: 40,
                   fontWeight: FontWeight.w900,
                   height: 1,
@@ -80,11 +80,11 @@ class NetProfitCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 6, left: 6),
                 child: Text(
-                  isPositive ? 'surplus' : 'deficit',
+                  isPositive ? l10n.surplus : l10n.deficit,
                   style: TextStyle(
                     color: isPositive
-                        ? AppColors.primaryGreen.withOpacity(0.7)
-                        : AppColors.danger.withOpacity(0.7),
+                        ? AppColors.primaryGreen.withValues(alpha: 0.7)
+                        : AppColors.danger.withValues(alpha: 0.7),
                     fontSize: 13,
                   ),
                 ),
@@ -93,7 +93,10 @@ class NetProfitCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '${CurrencyFormatter.compact(income)} income · ${CurrencyFormatter.compact(expenses)} spent',
+            l10n.incomeSpent(
+              CurrencyFormatter.compact(income),
+              CurrencyFormatter.compact(expenses),
+            ),
             style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
           ),
           const SizedBox(height: 16),
@@ -104,9 +107,9 @@ class NetProfitCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Monthly burn rate',
-                    style: TextStyle(
+                  Text(
+                    l10n.monthlyBurnRate,
+                    style: const TextStyle(
                       color: AppColors.textMuted,
                       fontSize: 11,
                     ),

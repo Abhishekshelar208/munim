@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/finance_service.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../providers.dart';
 
 class SmartAlertCard extends StatelessWidget {
@@ -11,6 +12,7 @@ class SmartAlertCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = context.watch<UserProvider>().user;
     final txnProvider = context.watch<TransactionProvider>();
+    final l10n = AppLocalizations.of(context);
 
     final alerts = FinanceService.instance.generateAlerts(
       monthlyIncome: user.monthlyIncome,
@@ -23,15 +25,15 @@ class SmartAlertCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(bottom: 10, top: 4),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10, top: 4),
           child: Row(
             children: [
-              Text('🧠', style: TextStyle(fontSize: 16)),
-              SizedBox(width: 6),
+              const Text('🧠', style: TextStyle(fontSize: 16)),
+              const SizedBox(width: 6),
               Text(
-                'Smart Alerts',
-                style: TextStyle(
+                l10n.smartAlerts,
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -58,9 +60,9 @@ class _AlertTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withOpacity(0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,10 +100,10 @@ class _AlertTile extends StatelessWidget {
 
   Color _color(AlertType type) {
     switch (type) {
-      case AlertType.danger: return AppColors.danger;
+      case AlertType.danger:  return AppColors.danger;
       case AlertType.warning: return AppColors.premiumGold;
-      case AlertType.tip: return AppColors.primaryGreen;
-      case AlertType.info: return AppColors.accentBlue;
+      case AlertType.tip:     return AppColors.primaryGreen;
+      case AlertType.info:    return AppColors.accentBlue;
     }
   }
 }

@@ -10,6 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # UI & Design
   cupertino_icons: ^1.0.8
@@ -18,6 +20,7 @@ dependencies:
   flutter_staggered_animations: ^1.1.1
   percent_indicator: ^4.2.3
   lottie: ^3.1.2
+  firebase_core: ^4.7.0
 
   # State Management
   provider: ^6.1.2
@@ -29,7 +32,7 @@ dependencies:
   http: ^1.2.1
 
   # Utils
-  intl: ^0.19.0
+  intl: ^0.20.0
   uuid: ^4.4.0
 
 dev_dependencies:
@@ -42,15 +45,3 @@ flutter:
   assets:
     - assets/images/
     - assets/animations/
-
-  fonts:
-    - family: Inter
-      fonts:
-        - asset: fonts/Inter-Regular.ttf
-          weight: 400
-        - asset: fonts/Inter-Medium.ttf
-          weight: 500
-        - asset: fonts/Inter-SemiBold.ttf
-          weight: 600
-        - asset: fonts/Inter-Bold.ttf
-          weight: 700

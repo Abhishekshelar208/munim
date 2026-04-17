@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/models/transaction_model.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_helpers.dart';
-import '../../../../providers.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../shared/widgets/gradient_badge.dart';
 
 class TransactionTile extends StatelessWidget {
@@ -26,7 +25,7 @@ class TransactionTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.bgCard,
+        color: Theme.of(context).cardTheme.color ?? AppColors.bgCard,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.bgGlassBorder, width: 0.5),
       ),
@@ -37,7 +36,7 @@ class TransactionTile extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
@@ -54,8 +53,8 @@ class TransactionTile extends StatelessWidget {
               children: [
                 Text(
                   transaction.title,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
@@ -105,21 +104,21 @@ class TransactionTile extends StatelessWidget {
 
   String _categoryEmoji(TransactionCategory cat) {
     switch (cat) {
-      case TransactionCategory.salary:       return '💼';
-      case TransactionCategory.freelance:    return '🖥️';
-      case TransactionCategory.food:         return '🍽️';
-      case TransactionCategory.rent:         return '🏠';
-      case TransactionCategory.transport:    return '🚗';
-      case TransactionCategory.entertainment:return '🎬';
-      case TransactionCategory.shopping:     return '🛍️';
-      case TransactionCategory.stocks:       return '📈';
-      case TransactionCategory.mutualFunds:  return '💰';
-      case TransactionCategory.education:    return '📚';
-      case TransactionCategory.healthcare:   return '🏥';
-      case TransactionCategory.dining:       return '🍜';
-      case TransactionCategory.subscription: return '📱';
-      case TransactionCategory.travel:       return '✈️';
-      default:                               return '💳';
+      case TransactionCategory.salary:        return '💼';
+      case TransactionCategory.freelance:     return '🖥️';
+      case TransactionCategory.food:          return '🍽️';
+      case TransactionCategory.rent:          return '🏠';
+      case TransactionCategory.transport:     return '🚗';
+      case TransactionCategory.entertainment: return '🎬';
+      case TransactionCategory.shopping:      return '🛍️';
+      case TransactionCategory.stocks:        return '📈';
+      case TransactionCategory.mutualFunds:   return '💰';
+      case TransactionCategory.education:     return '📚';
+      case TransactionCategory.healthcare:    return '🏥';
+      case TransactionCategory.dining:        return '🍜';
+      case TransactionCategory.subscription:  return '📱';
+      case TransactionCategory.travel:        return '✈️';
+      default:                                return '💳';
     }
   }
 }
@@ -130,18 +129,19 @@ class _RoiChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final (text, color) = switch (label) {
-      RoiLabel.excellent => ('Excellent ROI', AppColors.primaryGreen),
-      RoiLabel.good      => ('Good', AppColors.accentBlueLight),
-      RoiLabel.neutral   => ('Neutral', AppColors.textMuted),
-      RoiLabel.poor      => ('Poor ROI', AppColors.premiumGold),
-      RoiLabel.terrible  => ('Bad Move', AppColors.danger),
+      RoiLabel.excellent => (l10n.roiExcellent, AppColors.primaryGreen),
+      RoiLabel.good      => (l10n.roiGood,      AppColors.accentBlueLight),
+      RoiLabel.neutral   => (l10n.roiNeutral,   AppColors.textMuted),
+      RoiLabel.poor      => (l10n.roiPoor,       AppColors.premiumGold),
+      RoiLabel.terrible  => (l10n.roiBad,        AppColors.danger),
     };
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(

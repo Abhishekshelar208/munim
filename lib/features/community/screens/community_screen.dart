@@ -1,15 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../shared/widgets/glass_card.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../shared/widgets/section_header.dart';
-import '../../../shared/widgets/gradient_badge.dart';
 
 class CommunityScreen extends StatelessWidget {
   const CommunityScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    // Build all data from l10n so it rebuilds on language change
+    final circles = [
+      _WealthCircle('🏦', l10n.circle1Name, 128, l10n.circle1Tag, 0.67),
+      _WealthCircle('🛡️', l10n.circle2Name, 43,  l10n.circle2Tag, 0.44),
+      _WealthCircle('📚', l10n.circle3Name, 256, l10n.circle3Tag, 0.85),
+    ];
+
+    final challenges = [
+      _Challenge('🚫', l10n.challenge1Title, l10n.challenge1Time, 67,  l10n.challenge1Desc, AppColors.primaryGreen),
+      _Challenge('☕', l10n.challenge2Title, l10n.challenge2Time, 43,  l10n.challenge2Desc, AppColors.accentBlue),
+      _Challenge('📈', l10n.challenge3Title, l10n.challenge3Time, 89,  l10n.challenge3Desc, AppColors.premiumGold),
+    ];
+
+    final leaderboard = [
+      _LeaderEntry('Rahul M.',      '₹12,500', '🏆',  'Mumbai',          false),
+      _LeaderEntry('Priya S.',      '₹10,200', '🥈',  'Pune',             false),
+      _LeaderEntry('Arjun K.',      '₹9,850',  '🥉',  'Bangalore',        false),
+      _LeaderEntry('Neha R.',       '₹8,400',  '4️⃣', 'Hyderabad',        false),
+      _LeaderEntry(l10n.leaderYou,  '₹6,200',  '5️⃣', l10n.leaderYourCity, true),
+    ];
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: CustomScrollView(
@@ -24,16 +46,16 @@ class CommunityScreen extends StatelessWidget {
             sliver: SliverToBoxAdapter(
               child: FadeInUp(
                 duration: const Duration(milliseconds: 400),
-                child: const _UserRankCard(),
+                child: _UserRankCard(),
               ),
             ),
           ),
 
           // Wealth Circles
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: SectionHeader(
-              title: 'Wealth Circles',
-              subtitle: 'Group-based accountability for better habits',
+              title: l10n.wealthCirclesTitle,
+              subtitle: l10n.wealthCirclesSubtitle,
             ),
           ),
 
@@ -44,18 +66,18 @@ class CommunityScreen extends StatelessWidget {
                 (ctx, i) => FadeInLeft(
                   delay: Duration(milliseconds: 60 * i),
                   duration: const Duration(milliseconds: 350),
-                  child: _WealthCircleCard(circle: _circles[i]),
+                  child: _WealthCircleCard(circle: circles[i]),
                 ),
-                childCount: _circles.length,
+                childCount: circles.length,
               ),
             ),
           ),
 
           // Active Challenges
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: SectionHeader(
-              title: 'Active Challenges',
-              subtitle: 'Build good habits through competition',
+              title: l10n.activeChallenges,
+              subtitle: l10n.activeChallengesSubtitle,
             ),
           ),
 
@@ -66,31 +88,29 @@ class CommunityScreen extends StatelessWidget {
                 (ctx, i) => FadeInRight(
                   delay: Duration(milliseconds: 60 * i),
                   duration: const Duration(milliseconds: 350),
-                  child: _ChallengeCard(challenge: _challenges[i]),
+                  child: _ChallengeCard(challenge: challenges[i]),
                 ),
-                childCount: _challenges.length,
+                childCount: challenges.length,
               ),
             ),
           ),
 
           // Leaderboard
-          const SliverToBoxAdapter(
-            child: SectionHeader(title: '🏆 This Week\'s Top Savers'),
+          SliverToBoxAdapter(
+            child: SectionHeader(title: l10n.topSaversTitle),
           ),
 
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (ctx, i) => _LeaderboardTile(rank: i + 1, entry: _leaderboard[i]),
-                childCount: _leaderboard.length,
-              ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (ctx, i) =>
+                  _LeaderboardTile(rank: i + 1, entry: leaderboard[i]),
+              childCount: leaderboard.length,
             ),
           ),
 
-          // Mindset wisdom
-          const SliverToBoxAdapter(
-            child: SectionHeader(title: '🧠 Wealth Mindset of the Day'),
+          // Wisdom card
+          SliverToBoxAdapter(
+            child: SectionHeader(title: l10n.wisdomOfDay),
           ),
 
           SliverToBoxAdapter(
@@ -107,50 +127,32 @@ class CommunityScreen extends StatelessWidget {
       ),
     );
   }
-
-  static const _circles = [
-    _WealthCircle('🏦', 'Fresher Investors Club', 128, 'Weekly SIP accountability', 0.67),
-    _WealthCircle('🛡️', '6-Month Fund Brigade', 43, 'Emergency fund builders', 0.44),
-    _WealthCircle('📚', 'Finance Learners', 256, 'Daily finance education', 0.85),
-  ];
-
-  static const _challenges = [
-    _Challenge('🚫', 'No-spend Weekend', '2 days left', 67, 'Skip unnecessary spends this weekend', AppColors.primaryGreen),
-    _Challenge('☕', 'Brew at Home', '12 days left', 43, 'No café coffee for 21 days', AppColors.accentBlue),
-    _Challenge('📈', '₹1K SIP Start', '6 days left', 89, 'Start your first SIP this month', AppColors.premiumGold),
-  ];
-
-  static const _leaderboard = [
-    _LeaderEntry('Rahul M.', '₹12,500', '🏆', 'Mumbai'),
-    _LeaderEntry('Priya S.', '₹10,200', '🥈', 'Pune'),
-    _LeaderEntry('Arjun K.', '₹9,850', '🥉', 'Bangalore'),
-    _LeaderEntry('Neha R.', '₹8,400', '4️⃣', 'Hyderabad'),
-    _LeaderEntry('You', '₹6,200', '5️⃣', 'Your City'),
-  ];
 }
 
 // ─── Header ──────────────────────────────────────────────────────────────────
 class _CommunityHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(
           20, MediaQuery.of(context).padding.top + 16, 20, 16),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '👥 Community',
+            l10n.communityTitle,
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 26,
               fontWeight: FontWeight.w800,
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
-            'Your environment shapes your wealth',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+            l10n.communitySubtitle,
+            style: const TextStyle(
+                color: AppColors.textSecondary, fontSize: 14),
           ),
         ],
       ),
@@ -160,10 +162,9 @@ class _CommunityHeader extends StatelessWidget {
 
 // ─── User Rank ────────────────────────────────────────────────────────────────
 class _UserRankCard extends StatelessWidget {
-  const _UserRankCard();
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(20),
@@ -174,16 +175,17 @@ class _UserRankCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        border: Border.all(color: AppColors.premiumGold.withOpacity(0.3)),
+        border: Border.all(
+            color: AppColors.premiumGold.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                '🏆 Your Rank',
-                style: TextStyle(
+              Text(
+                l10n.yourRank,
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -191,7 +193,8 @@ class _UserRankCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               ShaderMask(
-                shaderCallback: (b) => AppColors.goldGradient.createShader(b),
+                shaderCallback: (b) =>
+                    AppColors.goldGradient.createShader(b),
                 child: const Text(
                   '#5',
                   style: TextStyle(
@@ -201,9 +204,10 @@ class _UserRankCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const Text(
-                'Top 10% this week',
-                style: TextStyle(color: AppColors.textMuted, fontSize: 11),
+              Text(
+                l10n.topPercent,
+                style: const TextStyle(
+                    color: AppColors.textMuted, fontSize: 11),
               ),
             ],
           ),
@@ -212,11 +216,11 @@ class _UserRankCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _StatRow(label: 'Saved this week', value: '₹6,200'),
+                _StatRow(label: l10n.savedThisWeek, value: '₹6,200'),
                 const SizedBox(height: 8),
-                _StatRow(label: 'Circles joined', value: '2'),
+                _StatRow(label: l10n.circlesJoined, value: '2'),
                 const SizedBox(height: 8),
-                _StatRow(label: 'Challenges active', value: '3'),
+                _StatRow(label: l10n.challengesActive, value: '3'),
               ],
             ),
           ),
@@ -237,11 +241,13 @@ class _StatRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+        Text(label,
+            style: const TextStyle(
+                color: AppColors.textMuted, fontSize: 12)),
         Text(
           value,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.w700,
             fontSize: 12,
           ),
@@ -258,22 +264,22 @@ class _WealthCircle {
   final int members;
   final String tagline;
   final double activity;
-  const _WealthCircle(this.emoji, this.name, this.members, this.tagline,
-      this.activity);
+  const _WealthCircle(
+      this.emoji, this.name, this.members, this.tagline, this.activity);
 }
 
 class _WealthCircleCard extends StatelessWidget {
   final _WealthCircle circle;
-
   const _WealthCircleCard({required this.circle});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.bgCard,
+        color: Theme.of(context).cardTheme.color ?? AppColors.bgCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.bgGlassBorder),
       ),
@@ -283,11 +289,12 @@ class _WealthCircleCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.accentBlue.withOpacity(0.12),
+              color: AppColors.accentBlue.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Center(
-              child: Text(circle.emoji, style: const TextStyle(fontSize: 24)),
+              child: Text(circle.emoji,
+                  style: const TextStyle(fontSize: 24)),
             ),
           ),
           const SizedBox(width: 14),
@@ -297,8 +304,8 @@ class _WealthCircleCard extends StatelessWidget {
               children: [
                 Text(
                   circle.name,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
                   ),
@@ -307,17 +314,13 @@ class _WealthCircleCard extends StatelessWidget {
                 Text(
                   circle.tagline,
                   style: const TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 11,
-                  ),
+                      color: AppColors.textMuted, fontSize: 11),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '${circle.members} members',
+                  l10n.membersCount(circle.members),
                   style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 11,
-                  ),
+                      color: AppColors.textSecondary, fontSize: 11),
                 ),
               ],
             ),
@@ -325,14 +328,15 @@ class _WealthCircleCard extends StatelessWidget {
           GestureDetector(
             onTap: () {},
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
                 gradient: AppColors.primaryGradient,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Text(
-                'Join',
-                style: TextStyle(
+              child: Text(
+                l10n.joinButton,
+                style: const TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.w700,
                   fontSize: 12,
@@ -360,23 +364,25 @@ class _Challenge {
 
 class _ChallengeCard extends StatelessWidget {
   final _Challenge challenge;
-
   const _ChallengeCard({required this.challenge});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: challenge.color.withOpacity(0.06),
+        color: challenge.color.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: challenge.color.withOpacity(0.25)),
+        border: Border.all(
+            color: challenge.color.withValues(alpha: 0.25)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(challenge.emoji, style: const TextStyle(fontSize: 26)),
+          Text(challenge.emoji,
+              style: const TextStyle(fontSize: 26)),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -386,8 +392,9 @@ class _ChallengeCard extends StatelessWidget {
                   children: [
                     Text(
                       challenge.title,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
+                      style: TextStyle(
+                        color:
+                            Theme.of(context).colorScheme.onSurface,
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                       ),
@@ -397,7 +404,7 @@ class _ChallengeCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: challenge.color.withOpacity(0.15),
+                        color: challenge.color.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -415,17 +422,13 @@ class _ChallengeCard extends StatelessWidget {
                 Text(
                   challenge.description,
                   style: const TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 11,
-                  ),
+                      color: AppColors.textMuted, fontSize: 11),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${challenge.participants} people participating',
+                  l10n.participantsCount(challenge.participants),
                   style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 11,
-                  ),
+                      color: AppColors.textSecondary, fontSize: 11),
                 ),
               ],
             ),
@@ -442,7 +445,9 @@ class _LeaderEntry {
   final String amount;
   final String medal;
   final String city;
-  const _LeaderEntry(this.name, this.amount, this.medal, this.city);
+  final bool isMe;
+  const _LeaderEntry(
+      this.name, this.amount, this.medal, this.city, this.isMe);
 }
 
 class _LeaderboardTile extends StatelessWidget {
@@ -453,17 +458,18 @@ class _LeaderboardTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMe = entry.name == 'You';
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: isMe
-            ? AppColors.primaryGreen.withOpacity(0.08)
-            : AppColors.bgCard,
+        color: entry.isMe
+            ? AppColors.primaryGreen.withValues(alpha: 0.08)
+            : (Theme.of(context).cardTheme.color ?? AppColors.bgCard),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isMe ? AppColors.primaryGreen.withOpacity(0.3) : AppColors.bgGlassBorder,
+          color: entry.isMe
+              ? AppColors.primaryGreen.withValues(alpha: 0.3)
+              : AppColors.bgGlassBorder,
         ),
       ),
       child: Row(
@@ -477,14 +483,17 @@ class _LeaderboardTile extends StatelessWidget {
                 Text(
                   entry.name,
                   style: TextStyle(
-                    color: isMe ? AppColors.primaryGreen : AppColors.textPrimary,
+                    color: entry.isMe
+                        ? AppColors.primaryGreen
+                        : Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w700,
                     fontSize: 13,
                   ),
                 ),
                 Text(
                   entry.city,
-                  style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+                  style: const TextStyle(
+                      color: AppColors.textMuted, fontSize: 11),
                 ),
               ],
             ),
@@ -505,15 +514,11 @@ class _LeaderboardTile extends StatelessWidget {
 
 // ─── Wisdom card ──────────────────────────────────────────────────────────────
 class _WisdomCard extends StatelessWidget {
-  final _quotes = const [
-    '"The secret to wealth is simple: spend less than you earn and invest the rest." — Warren Buffett',
-    '"Invest in yourself. Your career is the engine of your wealth." — Paul Clitheroe',
-    '"Do not save what is left after spending, but spend what is left after saving." — Warren Buffett',
-  ];
-
   @override
   Widget build(BuildContext context) {
-    final quote = _quotes[DateTime.now().day % _quotes.length];
+    final l10n = AppLocalizations.of(context);
+    final quotes = l10n.wisdomQuotes;
+    final quote = quotes[DateTime.now().day % quotes.length];
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -523,7 +528,8 @@ class _WisdomCard extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.accentBlue.withOpacity(0.3)),
+        border: Border.all(
+            color: AppColors.accentBlue.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

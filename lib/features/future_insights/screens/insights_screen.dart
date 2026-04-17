@@ -4,6 +4,7 @@ import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/finance_service.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../providers.dart';
 import '../../../shared/widgets/glass_card.dart';
 import '../../../shared/widgets/section_header.dart';
@@ -19,47 +20,47 @@ class _FutureInsightsScreenState extends State<FutureInsightsScreen> {
   int _years = 10;
   final List<int> _yearOptions = [5, 10, 20];
 
-  // Insight scenarios: (emoji, label, amount, description)
-  List<_InsightScenario> _buildScenarios(double monthlyIncome) {
+  List<_InsightScenario> _buildScenarios(
+      AppLocalizations l10n, double monthlyIncome) {
     final sipAmount = monthlyIncome * 0.10;
     return [
       _InsightScenario(
         emoji: '☕',
-        label: 'Daily Coffee',
+        label: l10n.scenarioCoffeeLabel,
         monthlyAmount: 1500,
-        description: 'Skipping ₹50/day coffee and investing instead',
+        description: l10n.scenarioCoffeeDesc,
       ),
       _InsightScenario(
         emoji: '📱',
-        label: 'OTT Subscriptions',
+        label: l10n.scenarioOttLabel,
         monthlyAmount: 800,
-        description: 'Cancelling extra streaming services you barely use',
+        description: l10n.scenarioOttDesc,
       ),
       _InsightScenario(
         emoji: '🛍️',
-        label: 'Impulse Shopping',
+        label: l10n.scenarioShoppingLabel,
         monthlyAmount: 3000,
-        description: 'One unplanned purchase you regret every month',
+        description: l10n.scenarioShoppingDesc,
       ),
       _InsightScenario(
         emoji: '🍕',
-        label: 'Dining Out',
+        label: l10n.scenarioDiningLabel,
         monthlyAmount: 2500,
-        description: 'Eating out twice a week vs cooking at home',
+        description: l10n.scenarioDiningDesc,
       ),
       _InsightScenario(
         emoji: '📈',
-        label: 'SIP Investment',
+        label: l10n.scenarioSipLabel,
         monthlyAmount: sipAmount,
-        description:
-            '10% of income (₹${CurrencyFormatter.compact(sipAmount)}) as monthly SIP',
+        description: l10n.scenarioSipDesc(
+            CurrencyFormatter.compact(sipAmount)),
         isPositive: true,
       ),
       _InsightScenario(
         emoji: '💰',
-        label: 'Emergency Fund',
+        label: l10n.scenarioEmergencyLabel,
         monthlyAmount: monthlyIncome * 0.05,
-        description: '5% saved monthly in liquid fund',
+        description: l10n.scenarioEmergencyDesc,
         isPositive: true,
       ),
     ];
@@ -68,7 +69,8 @@ class _FutureInsightsScreenState extends State<FutureInsightsScreen> {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<UserProvider>().user;
-    final scenarios = _buildScenarios(user.monthlyIncome);
+    final l10n = AppLocalizations.of(context);
+    final scenarios = _buildScenarios(l10n, user.monthlyIncome);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -77,31 +79,36 @@ class _FutureInsightsScreenState extends State<FutureInsightsScreen> {
         slivers: [
           // Header
           SliverToBoxAdapter(
-            child: _Header(years: _years, yearOptions: _yearOptions, onChanged: (y) => setState(() => _years = y)),
+            child: _Header(
+              years: _years,
+              yearOptions: _yearOptions,
+              onChanged: (y) => setState(() => _years = y),
+            ),
           ),
 
-          // Hero: Your ₹X today = ₹Y later
+          // Hero compound card
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             sliver: SliverToBoxAdapter(
               child: FadeInUp(
                 duration: const Duration(milliseconds: 400),
-                child: _CompoundHero(
-                  income: user.monthlyIncome,
-                  years: _years,
-                ),
+                child: _CompoundHero(income: user.monthlyIncome, years: _years),
               ),
             ),
           ),
 
-          // Scenarios
-          const SliverToBoxAdapter(
-            child: SectionHeader(
-              title: 'Spending vs Opportunity Cost',
-              subtitle: 'What you lose by not investing this money',
-            ),
+          // Section header
+          SliverToBoxAdapter(
+            child: Builder(builder: (ctx) {
+              final l = AppLocalizations.of(ctx);
+              return SectionHeader(
+                title: l.spendingVsOpportunityCost,
+                subtitle: l.spendingSubtitle,
+              );
+            }),
           ),
 
+          // Scenario cards
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             sliver: SliverList(
@@ -116,13 +123,14 @@ class _FutureInsightsScreenState extends State<FutureInsightsScreen> {
             ),
           ),
 
-          // Inflation impact
+          // Inflation card
           SliverToBoxAdapter(
             child: FadeInUp(
               delay: const Duration(milliseconds: 300),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                child: _InflationCard(years: _years, income: user.monthlyIncome),
+                child: _InflationCard(
+                    years: _years, income: user.monthlyIncome),
               ),
             ),
           ),
@@ -140,34 +148,41 @@ class _Header extends StatelessWidget {
   final List<int> yearOptions;
   final ValueChanged<int> onChanged;
 
-  const _Header({required this.years, required this.yearOptions, required this.onChanged});
+  const _Header(
+      {required this.years,
+      required this.yearOptions,
+      required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 16, 20, 20),
+      padding: EdgeInsets.fromLTRB(
+          20, MediaQuery.of(context).padding.top + 16, 20, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '🔮 Future Insights',
+          Text(
+            l10n.futureInsightsTitle,
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 26,
               fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'See the real cost of your decisions',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+          Text(
+            l10n.futureInsightsSubtitle,
+            style: const TextStyle(
+                color: AppColors.textSecondary, fontSize: 14),
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              const Text(
-                'Projection',
-                style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+              Text(
+                l10n.projection,
+                style:
+                    const TextStyle(color: AppColors.textMuted, fontSize: 13),
               ),
               const SizedBox(width: 12),
               ...yearOptions.map((y) {
@@ -180,8 +195,12 @@ class _Header extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 7),
                     decoration: BoxDecoration(
-                      gradient: sel ? AppColors.primaryGradient : null,
-                      color: sel ? null : AppColors.bgCard,
+                      gradient:
+                          sel ? AppColors.primaryGradient : null,
+                      color: sel
+                          ? null
+                          : Theme.of(context).cardTheme.color ??
+                              AppColors.bgCard,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: sel
@@ -192,7 +211,9 @@ class _Header extends StatelessWidget {
                     child: Text(
                       '${y}Y',
                       style: TextStyle(
-                        color: sel ? Colors.black : AppColors.textSecondary,
+                        color: sel
+                            ? Colors.black
+                            : AppColors.textSecondary,
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                       ),
@@ -217,6 +238,7 @@ class _CompoundHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final sip = income * 0.20;
     final fv = FinanceService.instance.futureValue(sip * 12, years: years);
 
@@ -230,14 +252,15 @@ class _CompoundHero extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3)),
+        border: Border.all(
+            color: AppColors.primaryGreen.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '💡 If you invested 20% of income today...',
-            style: TextStyle(
+          Text(
+            l10n.invest20Percent,
+            style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -250,7 +273,9 @@ class _CompoundHero extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Today', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                  Text(l10n.today,
+                      style: const TextStyle(
+                          color: AppColors.textMuted, fontSize: 11)),
                   Text(
                     CurrencyFormatter.compact(sip),
                     style: const TextStyle(
@@ -259,11 +284,14 @@ class _CompoundHero extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const Text('per month', style: TextStyle(color: AppColors.textMuted, fontSize: 10)),
+                  Text(l10n.perMonth,
+                      style: const TextStyle(
+                          color: AppColors.textMuted, fontSize: 10)),
                 ],
               ),
               const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Icon(Icons.arrow_forward_rounded,
                     color: AppColors.primaryGreen, size: 24),
               ),
@@ -271,8 +299,11 @@ class _CompoundHero extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'In $years years',
-                    style: const TextStyle(color: AppColors.primaryGreen, fontSize: 11, fontWeight: FontWeight.w600),
+                    l10n.inYears(years),
+                    style: const TextStyle(
+                        color: AppColors.primaryGreen,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600),
                   ),
                   Text(
                     CurrencyFormatter.compact(fv),
@@ -282,7 +313,9 @@ class _CompoundHero extends StatelessWidget {
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-                  const Text('at 12% p.a.', style: TextStyle(color: AppColors.textMuted, fontSize: 10)),
+                  Text(l10n.atReturn,
+                      style: const TextStyle(
+                          color: AppColors.textMuted, fontSize: 10)),
                 ],
               ),
             ],
@@ -291,11 +324,11 @@ class _CompoundHero extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.primaryGreen.withOpacity(0.08),
+              color: AppColors.primaryGreen.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
-              '📌 Index funds (Nifty 50 SIP) have historically returned 12-14% p.a. over 10+ year periods.',
+              l10n.indexFundNote,
               style: const TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 11,
@@ -309,7 +342,7 @@ class _CompoundHero extends StatelessWidget {
   }
 }
 
-// ─── Scenario card ────────────────────────────────────────────────────────────
+// ─── Scenario model ───────────────────────────────────────────────────────────
 class _InsightScenario {
   final String emoji;
   final String label;
@@ -326,6 +359,7 @@ class _InsightScenario {
   });
 }
 
+// ─── Scenario card ────────────────────────────────────────────────────────────
 class _ScenarioCard extends StatelessWidget {
   final _InsightScenario scenario;
   final int years;
@@ -334,23 +368,27 @@ class _ScenarioCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final fv = FinanceService.instance.futureValue(
       scenario.monthlyAmount * 12,
       years: years,
     );
-    final color = scenario.isPositive ? AppColors.primaryGreen : AppColors.danger;
+    final color =
+        scenario.isPositive ? AppColors.primaryGreen : AppColors.danger;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.bgCard,
+        color:
+            Theme.of(context).cardTheme.color ?? AppColors.bgCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.bgGlassBorder),
       ),
       child: Row(
         children: [
-          Text(scenario.emoji, style: const TextStyle(fontSize: 28)),
+          Text(scenario.emoji,
+              style: const TextStyle(fontSize: 28)),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -358,8 +396,9 @@ class _ScenarioCard extends StatelessWidget {
               children: [
                 Text(
                   scenario.label,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color:
+                        Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
                   ),
@@ -385,10 +424,12 @@ class _ScenarioCard extends StatelessWidget {
                     ),
                     const Text(
                       ' → ',
-                      style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                      style: TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 12),
                     ),
                     Text(
-                      '${CurrencyFormatter.compact(fv)} in ${years}Y',
+                      '${CurrencyFormatter.compact(fv)} ${l10n.inYears(years)}',
                       style: TextStyle(
                         color: color,
                         fontSize: 12,
@@ -401,9 +442,10 @@ class _ScenarioCard extends StatelessWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(
+                horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -426,6 +468,7 @@ class _InflationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final inflationAdjusted =
         FinanceService.instance.inflationAdjusted(income, years: years);
 
@@ -433,21 +476,23 @@ class _InflationCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.premiumGold.withOpacity(0.06),
+        color: AppColors.premiumGold.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.premiumGold.withOpacity(0.25)),
+        border: Border.all(
+            color: AppColors.premiumGold.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
-          const Text('🔥', style: TextStyle(fontSize: 28)),
+          const Text('🔥',
+              style: TextStyle(fontSize: 28)),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Inflation Reality Check',
-                  style: TextStyle(
+                Text(
+                  l10n.inflationTitle,
+                  style: const TextStyle(
                     color: AppColors.premiumGold,
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
@@ -455,7 +500,11 @@ class _InflationCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Your current income of ${CurrencyFormatter.compact(income)} will only buy goods worth ${CurrencyFormatter.compact(inflationAdjusted)} in $years years (at 6% inflation).',
+                  l10n.inflationBody(
+                    CurrencyFormatter.compact(income),
+                    CurrencyFormatter.compact(inflationAdjusted),
+                    years,
+                  ),
                   style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 12,
@@ -464,9 +513,9 @@ class _InflationCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '→ You need to grow wealth faster than inflation to stay ahead.',
+                  l10n.inflationCta,
                   style: TextStyle(
-                    color: AppColors.premiumGold.withOpacity(0.8),
+                    color: AppColors.premiumGold.withValues(alpha: 0.8),
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),

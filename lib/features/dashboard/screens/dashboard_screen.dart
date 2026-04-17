@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/services/finance_service.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../providers.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../shared/widgets/glass_card.dart';
 import '../../../shared/widgets/section_header.dart';
 import '../../../shared/widgets/gradient_badge.dart';
@@ -83,13 +84,18 @@ class DashboardScreen extends StatelessWidget {
 
           // ── Recent Transactions ────────────────────────────────────────
           SliverToBoxAdapter(
-            child: SectionHeader(
-              title: 'Recent Transactions',
-              trailing: TextButton(
-                onPressed: () {},
-                child: const Text('See all',
-                    style: TextStyle(color: AppColors.primaryGreen)),
-              ),
+            child: Builder(
+              builder: (ctx) {
+                final l10n = AppLocalizations.of(ctx);
+                return SectionHeader(
+                  title: l10n.recentTransactions,
+                  trailing: TextButton(
+                    onPressed: () {},
+                    child: Text(l10n.seeAll,
+                        style: const TextStyle(color: AppColors.primaryGreen)),
+                  ),
+                );
+              },
             ),
           ),
 
@@ -120,15 +126,20 @@ class DashboardScreen extends StatelessWidget {
       ),
 
       // ── FAB ────────────────────────────────────────────────────────────
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddSheet(context),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.black,
-        icon: const Icon(Icons.add_rounded),
-        label: const Text(
-          'Add Entry',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
+      floatingActionButton: Builder(
+        builder: (ctx) {
+          final l10n = AppLocalizations.of(ctx);
+          return FloatingActionButton.extended(
+            onPressed: () => _showAddSheet(context),
+            backgroundColor: AppColors.primaryGreen,
+            foregroundColor: Colors.black,
+            icon: const Icon(Icons.add_rounded),
+            label: Text(
+              l10n.addEntry,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          );
+        },
       ),
     );
   }
@@ -148,12 +159,13 @@ class _DashboardHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<UserProvider>().user;
+    final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
     final greeting = now.hour < 12
-        ? 'Good Morning'
+        ? l10n.goodMorning
         : now.hour < 17
-            ? 'Good Afternoon'
-            : 'Good Evening';
+            ? l10n.goodAfternoon
+            : l10n.goodEvening;
 
     return Container(
       padding: EdgeInsets.fromLTRB(
@@ -173,7 +185,7 @@ class _DashboardHeader extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                user.name.isEmpty ? 'Welcome back!' : user.name,
+                user.name.isEmpty ? l10n.welcomeBack : user.name,
                 style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 22,
@@ -183,17 +195,73 @@ class _DashboardHeader extends StatelessWidget {
             ],
           ),
           const Spacer(),
+          // Theme Toggle
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, child) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              return GestureDetector(
+                onTap: () {
+                  if (themeProvider.themeMode == ThemeMode.system) {
+                    themeProvider.setThemeMode(isDark ? ThemeMode.light : ThemeMode.dark);
+                  } else {
+                    themeProvider.setThemeMode(
+                        themeProvider.themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark);
+                  }
+                },
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardTheme.color,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Theme.of(context).dividerTheme.color ?? Colors.transparent),
+                  ),
+                  child: Icon(
+                    themeProvider.themeMode == ThemeMode.system
+                        ? Icons.brightness_auto_rounded
+                        : isDark
+                            ? Icons.dark_mode_rounded
+                            : Icons.light_mode_rounded,
+                    color: Theme.of(context).iconTheme.color,
+                    size: 20,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+          // Language Toggle
+          Consumer<LanguageProvider>(
+            builder: (context, langProvider, _) {
+              return GestureDetector(
+                onTap: () => _showLanguagePicker(context, langProvider),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardTheme.color,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: Theme.of(context).dividerTheme.color ?? Colors.transparent),
+                  ),
+                  child: Icon(Icons.language_rounded,
+                      color: Theme.of(context).iconTheme.color, size: 20),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
           // Notification bell
           Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.bgCard,
+              color: Theme.of(context).cardTheme.color,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.bgGlassBorder),
+              border: Border.all(color: Theme.of(context).dividerTheme.color ?? Colors.transparent),
             ),
-            child: const Icon(Icons.notifications_none_rounded,
-                color: AppColors.textSecondary, size: 20),
+            child: Icon(Icons.notifications_none_rounded,
+                color: Theme.of(context).iconTheme.color, size: 20),
           ),
           const SizedBox(width: 8),
           // Avatar
@@ -216,6 +284,80 @@ class _DashboardHeader extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showLanguagePicker(BuildContext context, LanguageProvider langProvider) {
+    final l10n = AppLocalizations.of(context);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardTheme.color ?? AppColors.bgCard,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36, height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.bgGlassBorder,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              l10n.selectLanguage,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontSize: 18, fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ...AppLocalizations.supportedLocales.map((locale) {
+              final isSelected = langProvider.languageCode == locale.languageCode;
+              return GestureDetector(
+                onTap: () {
+                  langProvider.setLocale(locale);
+                  Navigator.pop(context);
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    gradient: isSelected ? AppColors.primaryGradient : null,
+                    color: isSelected ? null : Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(14),
+                    border: isSelected ? null : Border.all(color: AppColors.bgGlassBorder),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        AppLocalizations.languageNameFor(locale.languageCode),
+                        style: TextStyle(
+                          color: isSelected ? Colors.black : Theme.of(context).colorScheme.onSurface,
+                          fontSize: 15, fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (isSelected)
+                        const Icon(Icons.check_circle_rounded,
+                            color: Colors.black, size: 20),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
       ),
     );
   }
@@ -247,8 +389,8 @@ class _MonthlyInvestCard extends StatelessWidget {
                     color: AppColors.accentBlue, size: 16),
               ),
               const Spacer(),
-              const TonalBadge(
-                label: 'Invested',
+              TonalBadge(
+                label: AppLocalizations.of(context).invested,
                 color: AppColors.accentBlue,
               ),
             ],
@@ -263,9 +405,9 @@ class _MonthlyInvestCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          const Text(
-            'This month',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).thisMonth,
+            style: const TextStyle(
               color: AppColors.textMuted,
               fontSize: 11,
             ),
@@ -284,7 +426,7 @@ class _EmptyTransactions extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.bgCard,
+        color: Theme.of(context).cardTheme.color ?? AppColors.bgCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.bgGlassBorder),
       ),
@@ -292,17 +434,17 @@ class _EmptyTransactions extends StatelessWidget {
         children: [
           const Text('💸', style: TextStyle(fontSize: 36)),
           const SizedBox(height: 12),
-          const Text(
-            'No transactions yet',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).noTransactionsYet,
+            style: const TextStyle(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Tap "Add Entry" to record your first income or expense',
-            style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+          Text(
+            AppLocalizations.of(context).noTransactionsHint,
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
             textAlign: TextAlign.center,
           ),
         ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/localization/app_localizations.dart';
 
 class MuniBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -11,25 +12,26 @@ class MuniBottomNav extends StatelessWidget {
     required this.onTap,
   });
 
-  static const _tabs = [
-    _NavItem(icon: Icons.grid_view_rounded,    label: 'Dashboard'),
-    _NavItem(icon: Icons.auto_graph_rounded,   label: 'Insights'),
-    _NavItem(icon: Icons.psychology_rounded,   label: 'Advisor'),
-    _NavItem(icon: Icons.bolt_rounded,         label: 'Strategy'),
-    _NavItem(icon: Icons.group_rounded,        label: 'Community'),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final tabs = [
+      _NavItem(icon: Icons.grid_view_rounded,  label: l10n.home),
+      _NavItem(icon: Icons.auto_graph_rounded, label: l10n.future),
+      _NavItem(icon: Icons.psychology_rounded, label: l10n.advisor),
+      _NavItem(icon: Icons.bolt_rounded,       label: l10n.strategy),
+      _NavItem(icon: Icons.group_rounded,      label: l10n.community),
+    ];
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.bgCard,
+        color: Theme.of(context).bottomNavigationBarTheme.backgroundColor ?? AppColors.bgCard,
         border: const Border(
           top: BorderSide(color: AppColors.bgGlassBorder, width: 0.5),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withValues(alpha: 0.4),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -41,9 +43,9 @@ class MuniBottomNav extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(
-              _tabs.length,
+              tabs.length,
               (i) => _NavTile(
-                item: _tabs[i],
+                item: tabs[i],
                 selected: currentIndex == i,
                 onTap: () => onTap(i),
               ),
@@ -91,7 +93,7 @@ class _NavTile extends StatelessWidget {
           children: [
             Icon(
               item.icon,
-              color: selected ? AppColors.primaryGreen : AppColors.textMuted,
+              color: selected ? AppColors.primaryGreen : Theme.of(context).iconTheme.color,
               size: 22,
             ),
             const SizedBox(height: 3),
@@ -100,7 +102,7 @@ class _NavTile extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-                color: selected ? AppColors.primaryGreen : AppColors.textMuted,
+                color: selected ? AppColors.primaryGreen : Theme.of(context).iconTheme.color,
               ),
               child: Text(item.label),
             ),
