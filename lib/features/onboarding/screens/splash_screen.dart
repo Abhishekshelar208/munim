@@ -65,8 +65,9 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppColors.bgDeep,
+      backgroundColor: isDark ? AppColors.bgDeep : AppColors.bgDeepLight,
       body: Center(
         child: FadeTransition(
           opacity: _fadeIn,

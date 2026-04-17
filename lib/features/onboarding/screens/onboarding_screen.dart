@@ -95,8 +95,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppColors.bgDeep,
+      backgroundColor: isDark ? AppColors.bgDeep : AppColors.bgDeepLight,
       body: SafeArea(
         child: Column(
           children: [
@@ -115,7 +116,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         gradient: i <= _step
                             ? AppColors.primaryGradient
                             : null,
-                        color: i > _step ? AppColors.bgCardAlt : null,
+                        color: i > _step
+                            ? (isDark
+                                ? AppColors.bgCardAlt
+                                : AppColors.bgCardAltLight)
+                            : null,
                       ),
                     ),
                   );
@@ -163,9 +168,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         width: 52,
                         height: 52,
                         decoration: BoxDecoration(
-                          color: AppColors.bgCardAlt,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.bgCardAlt
+                              : AppColors.bgCardAltLight,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.bgGlassBorder),
+                          border: Border.all(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.bgGlassBorder
+                                : AppColors.bgGlassBorderLight,
+                          ),
                         ),
                         child: const Icon(Icons.arrow_back_ios_new_rounded,
                             size: 18, color: AppColors.textSecondary),
@@ -245,11 +256,17 @@ class _StepWho extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   gradient: isSelected ? AppColors.primaryGradient : null,
-                  color: isSelected ? null : AppColors.bgCard,
+                  color: isSelected
+                      ? null
+                      : (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.bgCard
+                          : AppColors.bgCardLight),
                   border: Border.all(
                     color: isSelected
                         ? Colors.transparent
-                        : AppColors.bgGlassBorder,
+                        : (Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.bgGlassBorder
+                            : AppColors.bgGlassBorderLight),
                   ),
                 ),
                 child: Row(
@@ -364,11 +381,17 @@ class _StepIncome extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
                   gradient: isSelected ? AppColors.primaryGradient : null,
-                  color: isSelected ? null : AppColors.bgCard,
+                  color: isSelected
+                      ? null
+                      : (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.bgCard
+                          : AppColors.bgCardLight),
                   border: Border.all(
                     color: isSelected
                         ? Colors.transparent
-                        : AppColors.bgGlassBorder,
+                        : (Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.bgGlassBorder
+                            : AppColors.bgGlassBorderLight),
                   ),
                 ),
                 child: Row(
@@ -451,11 +474,17 @@ class _StepGoals extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     gradient:
                         isSelected ? AppColors.primaryGradient : null,
-                    color: isSelected ? null : AppColors.bgCard,
+                    color: isSelected
+                        ? null
+                        : (Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.bgCard
+                            : AppColors.bgCardLight),
                     border: Border.all(
                       color: isSelected
                           ? Colors.transparent
-                          : AppColors.bgGlassBorder,
+                          : (Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.bgGlassBorder
+                              : AppColors.bgGlassBorderLight),
                     ),
                   ),
                   child: Text(

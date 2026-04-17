@@ -229,9 +229,9 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
                     gradient: sel ? AppColors.greenGradient : null,
                     color: sel ? null : Theme.of(context).cardTheme.color ?? Theme.of(context).inputDecorationTheme.fillColor ?? AppColors.bgCardAlt,
                     border: Border.all(
-                      color: sel
-                          ? Colors.transparent
-                          : AppColors.bgGlassBorder,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.bgGlassBorder
+                          : AppColors.bgGlassBorderLight,
                     ),
                   ),
                   child: Text(

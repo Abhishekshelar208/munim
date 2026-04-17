@@ -28,17 +28,21 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      systemNavigationBarColor: isDark ? AppColors.bgDeep : AppColors.bgDeepLight,
+      systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
     ));
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.bgDeep,
+      backgroundColor: isDark ? AppColors.bgDeep : AppColors.bgDeepLight,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.bgGradient,
+        decoration: BoxDecoration(
+          gradient: isDark ? AppColors.bgGradient : AppColors.bgGradientLight,
         ),
         child: IndexedStack(
           index: _currentIndex,

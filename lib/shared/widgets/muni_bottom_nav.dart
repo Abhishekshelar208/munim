@@ -26,12 +26,19 @@ class MuniBottomNav extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).bottomNavigationBarTheme.backgroundColor ?? AppColors.bgCard,
-        border: const Border(
-          top: BorderSide(color: AppColors.bgGlassBorder, width: 0.5),
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.bgGlassBorder
+                : AppColors.bgGlassBorderLight,
+            width: 0.5,
+          ),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
+            color: Colors.black.withValues(
+              alpha: Theme.of(context).brightness == Brightness.dark ? 0.4 : 0.08,
+            ),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
