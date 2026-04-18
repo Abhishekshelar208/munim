@@ -6,7 +6,7 @@ import '../../../core/services/finance_service.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../providers.dart';
-import '../../../shared/widgets/glass_card.dart';
+import '../../../core/models/transaction_model.dart';
 import '../../../shared/widgets/section_header.dart';
 import '../../../shared/widgets/gradient_badge.dart';
 import '../../../core/services/future_service.dart';
@@ -30,7 +30,6 @@ class _FutureInsightsScreenState extends State<FutureInsightsScreen> {
   Widget build(BuildContext context) {
     final user = context.watch<UserProvider>().user;
     final txns = context.watch<TransactionProvider>().transactions.toList();
-    final l10n = AppLocalizations.of(context);
     final scenarios = _buildScenarios(txns, user.monthlyIncome);
     final rates = FutureService.instance.predictDynamicRates(txns);
 

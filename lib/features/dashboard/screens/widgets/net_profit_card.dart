@@ -4,7 +4,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../providers.dart';
-import '../../../../shared/widgets/glass_card.dart';
 import '../../../../shared/widgets/gradient_badge.dart';
 
 class NetProfitCard extends StatelessWidget {
@@ -16,11 +15,11 @@ class NetProfitCard extends StatelessWidget {
     final txnProvider = context.watch<TransactionProvider>();
     final l10n = AppLocalizations.of(context);
 
-    final income = user.monthlyIncome;
+    final income = user.monthlyIncome + txnProvider.thisMonthIncome;
     final expenses = txnProvider.thisMonthExpenses;
     final profit = income - expenses;
     final isPositive = profit >= 0;
-    final burnPercent = income > 0 ? (expenses / income).clamp(0, 1) : 0.0;
+    final burnPercent = income > 0 ? (expenses / income).clamp(0.0, 1.0) : 0.0;
 
     return Container(
       decoration: BoxDecoration(
@@ -124,7 +123,7 @@ class NetProfitCard extends StatelessWidget {
                   Text(
                     '${(burnPercent * 100).toStringAsFixed(0)}%',
                     style: TextStyle(
-                      color: _burnColor(burnPercent as double),
+                      color: _burnColor(burnPercent),
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),
@@ -135,7 +134,7 @@ class NetProfitCard extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(4),
                 child: LinearProgressIndicator(
-                  value: burnPercent as double,
+                  value: burnPercent,
                   minHeight: 5,
                   backgroundColor: AppColors.bgCardAlt,
                   valueColor: AlwaysStoppedAnimation(_burnColor(burnPercent)),

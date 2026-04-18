@@ -1,6 +1,6 @@
-import 'dart:math';
 import '../models/transaction_model.dart';
 import '../models/goal_model.dart';
+import '../models/behavior_prediction.dart';
 import 'ml_service.dart';
 import 'finance_service.dart';
 
@@ -73,22 +73,20 @@ class StrategyService {
       GoalModel(
         id: 'em_fund',
         title: 'Bulletproof Fund',
-        iconName: 'security',
         emoji: '🛡️',
         targetAmount: emFundTarget,
         currentAmount: 0,
         deadline: DateTime.now().add(const Duration(days: 180)),
-        category: 'Emergency',
+        description: 'Emergency Fund',
       ),
       GoalModel(
         id: 'wealth_milestone',
         title: '1-Year Freedom',
-        iconName: 'trending_up',
         emoji: '🦅',
         targetAmount: wealthTarget,
         currentAmount: 0,
         deadline: DateTime.now().add(const Duration(days: 365 * 2)), // 2 years
-        category: 'Wealth',
+        description: 'Wealth Building',
       ),
     ];
   }

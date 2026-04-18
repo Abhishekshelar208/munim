@@ -5,9 +5,9 @@ import '../core/models/user_model.dart';
 import '../core/models/transaction_model.dart';
 import '../core/models/goal_model.dart';
 import '../core/models/insight_model.dart';
+import '../core/models/behavior_prediction.dart';
 import '../core/services/finance_service.dart';
 import '../core/services/storage_service.dart';
-import '../core/services/ai_service.dart';
 import '../core/services/advisor_service.dart';
 import '../core/localization/app_localizations.dart';
 import '../core/services/ml_service.dart';
@@ -66,6 +66,10 @@ class TransactionProvider extends ChangeNotifier {
       .where((t) => t.type == TransactionType.expense)
       .fold(0.0, (s, t) => s + t.amount);
 
+  double get thisMonthIncome => thisMonthTransactions
+      .where((t) => t.type == TransactionType.income)
+      .fold(0.0, (s, t) => s + t.amount);
+
   double get thisMonthInvestments => thisMonthTransactions
       .where((t) => t.type == TransactionType.investment)
       .fold(0.0, (s, t) => s + t.amount);
@@ -97,13 +101,21 @@ class TransactionProvider extends ChangeNotifier {
     SecurityService.instance.trackDataFlow(source: 'Input UI', destination: 'Security Layer', action: 'Data Validated & Sanitized');
 
     final now = DateTime.now();
-    final prediction = MLService.instance.predictBehavior(
-      amount: amount,
-      category: category,
-      monthlyIncome: monthlyIncome,
-      date: now,
-      monthlyTransactionCount: thisMonthTransactions.length,
-    );
+    BehaviorPrediction prediction;
+    if (type == TransactionType.expense) {
+      prediction = MLService.instance.predictBehavior(
+        amount: amount,
+        category: category,
+        monthlyIncome: monthlyIncome,
+        date: now,
+        monthlyTransactionCount: thisMonthTransactions.length,
+      );
+    } else {
+      prediction = const BehaviorPrediction(
+        label: BehaviorLabel.good,
+        reason: 'Productive capital flow detected.',
+      );
+    }
     SecurityService.instance.trackDataFlow(source: 'Security Layer', destination: 'ML Layer', action: 'Behavior Prediction Generated');
 
     final t = TransactionModel(
@@ -125,7 +137,7 @@ class TransactionProvider extends ChangeNotifier {
       ),
       behaviorPrediction: prediction,
       date: now,
-      note: note,
+      note: safeNote,
     );
 
     _transactions.insert(0, t);

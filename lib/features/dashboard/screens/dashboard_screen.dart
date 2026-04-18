@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/services/finance_service.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../providers.dart';
 import '../../../core/localization/app_localizations.dart';
@@ -46,8 +45,8 @@ class DashboardScreen extends StatelessWidget {
                   FadeInUp(
                     delay: const Duration(milliseconds: 100),
                     duration: const Duration(milliseconds: 400),
-                    child: Row(
-                      children: const [
+                    child: const Row(
+                      children: [
                         Expanded(child: FreedomDaysCard()),
                         SizedBox(width: 12),
                         Expanded(child: _MonthlyInvestCard()),
@@ -142,14 +141,17 @@ class DashboardScreen extends StatelessWidget {
       floatingActionButton: Builder(
         builder: (ctx) {
           final l10n = AppLocalizations.of(ctx);
-          return FloatingActionButton.extended(
-            onPressed: () => _showAddSheet(context),
-            backgroundColor: AppColors.primaryGreen,
-            foregroundColor: Colors.black,
-            icon: const Icon(Icons.add_rounded),
-            label: Text(
-              l10n.addEntry,
-              style: const TextStyle(fontWeight: FontWeight.w700),
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 85.0),
+            child: FloatingActionButton.extended(
+              onPressed: () => _showAddSheet(context),
+              backgroundColor: AppColors.primaryGreen,
+              foregroundColor: Colors.black,
+              icon: const Icon(Icons.add_rounded),
+              label: Text(
+                l10n.addEntry,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
             ),
           );
         },
@@ -210,13 +212,13 @@ class _DashboardHeader extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryGreen.withOpacity(0.15),
+                  color: AppColors.primaryGreen.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.primaryGreen.withValues(alpha: 0.3)),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
+                  children: [
                     Icon(Icons.lock_outline_rounded, size: 10, color: AppColors.primaryGreen),
                     SizedBox(width: 4),
                     Text(
@@ -420,7 +422,7 @@ class _MonthlyInvestCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: AppColors.accentBlue.withOpacity(0.15),
+                  color: AppColors.accentBlue.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.trending_up_rounded,

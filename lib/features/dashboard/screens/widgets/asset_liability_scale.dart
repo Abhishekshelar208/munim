@@ -22,6 +22,11 @@ class AssetLiabilityScale extends StatelessWidget {
     double liabilities = 0;
 
     for (var t in txns) {
+      if (t.type == TransactionType.income || t.type == TransactionType.saving || t.type == TransactionType.investment) {
+         assets += t.amount;
+         continue;
+      }
+
       final pred = MLService.instance.predictBehavior(
           amount: t.amount,
           category: t.category,
@@ -30,7 +35,7 @@ class AssetLiabilityScale extends StatelessWidget {
           monthlyTransactionCount: txns.length,
       );
       
-      if (pred.label == BehaviorLabel.good || t.category.isInvestment) {
+      if (pred.label == BehaviorLabel.good) {
          assets += t.amount;
       } else if (pred.label == BehaviorLabel.poor) {
          liabilities += t.amount;
@@ -71,9 +76,9 @@ class AssetLiabilityScale extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.accentBlueLight.withOpacity(0.1),
+                  color: AppColors.accentBlueLight.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: AppColors.accentBlueLight.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.accentBlueLight.withValues(alpha: 0.3)),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,

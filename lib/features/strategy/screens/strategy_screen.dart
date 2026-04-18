@@ -17,8 +17,6 @@ class StrategyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
     final txns = context.watch<TransactionProvider>().transactions.toList();
     final wealthRules = StrategyService.instance.generateWealthRules(txns);
 
@@ -69,9 +67,9 @@ class StrategyScreen extends StatelessWidget {
                          child: Container(
                            padding: const EdgeInsets.all(20),
                            decoration: BoxDecoration(
-                             color: AppColors.primaryGreen.withOpacity(0.08),
+                             color: AppColors.primaryGreen.withValues(alpha: 0.08),
                              borderRadius: BorderRadius.circular(16),
-                             border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3)),
+                             border: Border.all(color: AppColors.primaryGreen.withValues(alpha: 0.3)),
                            ),
                            child: const Center(
                              child: Row(
@@ -544,8 +542,6 @@ class _EmptyScoreCard extends StatelessWidget {
       ),
     );
   }
-}
-
 }
 
 class _WealthRuleTile extends StatelessWidget {
