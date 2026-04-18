@@ -10,6 +10,8 @@ import '../../../core/models/transaction_model.dart';
 import '../../../shared/widgets/section_header.dart';
 import '../../../shared/widgets/gradient_badge.dart';
 import '../../../core/services/future_service.dart';
+import '../../../core/services/quote_service.dart';
+import '../../../shared/widgets/quote_card.dart';
 
 class FutureInsightsScreen extends StatefulWidget {
   const FutureInsightsScreen({super.key});
@@ -44,6 +46,16 @@ class _FutureInsightsScreenState extends State<FutureInsightsScreen> {
               years: _years,
               yearOptions: _yearOptions,
               onChanged: (y) => setState(() => _years = y),
+            ),
+          ),
+          
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+            sliver: SliverToBoxAdapter(
+              child: FadeInUp(
+                 duration: const Duration(milliseconds: 300),
+                 child: QuoteCard(quote: QuoteService.instance.getFutureQuote()),
+              ),
             ),
           ),
 

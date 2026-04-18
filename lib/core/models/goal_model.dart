@@ -1,3 +1,5 @@
+enum GoalPriority { low, medium, high }
+
 class GoalModel {
   final String id;
   final String title;
@@ -6,6 +8,7 @@ class GoalModel {
   final double currentAmount;
   final DateTime deadline;
   final String? description;
+  final GoalPriority priority;
 
   const GoalModel({
     required this.id,
@@ -15,6 +18,7 @@ class GoalModel {
     required this.currentAmount,
     required this.deadline,
     this.description,
+    this.priority = GoalPriority.medium,
   });
 
   double get progressPercent =>
@@ -34,6 +38,7 @@ class GoalModel {
     double? currentAmount,
     DateTime? deadline,
     String? description,
+    GoalPriority? priority,
   }) =>
       GoalModel(
         id: id ?? this.id,
@@ -43,6 +48,7 @@ class GoalModel {
         currentAmount: currentAmount ?? this.currentAmount,
         deadline: deadline ?? this.deadline,
         description: description ?? this.description,
+        priority: priority ?? this.priority,
       );
 
   Map<String, dynamic> toJson() => {
@@ -53,6 +59,7 @@ class GoalModel {
     'currentAmount': currentAmount,
     'deadline': deadline.toIso8601String(),
     'description': description,
+    'priority': priority.name,
   };
 
   factory GoalModel.fromJson(Map<String, dynamic> json) => GoalModel(
@@ -63,6 +70,9 @@ class GoalModel {
     currentAmount: (json['currentAmount'] as num).toDouble(),
     deadline: DateTime.parse(json['deadline'] as String),
     description: json['description'] as String?,
+    priority: json['priority'] != null 
+        ? GoalPriority.values.firstWhere((e) => e.name == json['priority'], orElse: () => GoalPriority.medium)
+        : GoalPriority.medium,
   );
 
   static List<GoalModel> presets() => [
@@ -74,6 +84,7 @@ class GoalModel {
       currentAmount: 0,
       deadline: DateTime.now().add(const Duration(days: 180)),
       description: '6 months of expenses as safety net',
+      priority: GoalPriority.high,
     ),
     GoalModel(
       id: 'investment',
@@ -83,6 +94,7 @@ class GoalModel {
       currentAmount: 0,
       deadline: DateTime.now().add(const Duration(days: 90)),
       description: 'First SIP or stock investment',
+      priority: GoalPriority.medium,
     ),
     GoalModel(
       id: 'gadget',
@@ -92,6 +104,7 @@ class GoalModel {
       currentAmount: 0,
       deadline: DateTime.now().add(const Duration(days: 365)),
       description: 'Save before buying, not EMI',
+      priority: GoalPriority.low,
     ),
   ];
 }

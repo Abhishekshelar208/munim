@@ -5,6 +5,8 @@ import '../../../../core/models/transaction_model.dart';
 import '../../../../providers.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/services/security_service.dart';
+import '../../../../core/services/quote_service.dart';
+import '../../../../core/models/behavior_prediction.dart';
 
 class QuickAddSheet extends StatefulWidget {
   const QuickAddSheet({super.key});
@@ -97,7 +99,29 @@ class _QuickAddSheetState extends State<QuickAddSheet> {
         monthlyIncome: monthlyIncome,
         note: _noteCtrl.text.trim(),
       );
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) {
+        final newTxn = context.read<TransactionProvider>().transactions.first;
+        final quoteLabel = newTxn.behaviorPrediction?.label ?? BehaviorLabel.neutral;
+        final quote = QuoteService.instance.getContextualQuote(quoteLabel);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Theme.of(context).cardTheme.color ?? AppColors.bgCardAlt,
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Transaction Added', style: TextStyle(color: AppColors.primaryGreen, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text('"${quote.text}"', style: const TextStyle(color: AppColors.textPrimary, fontStyle: FontStyle.italic)),
+              ],
+            ),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+        Navigator.of(context).pop();
+      }
     } on SecurityException catch (e) {
       // SECURITY AGENT REJECTION
       setState(() => _loading = false);

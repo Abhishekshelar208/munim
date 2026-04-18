@@ -11,6 +11,9 @@ import '../../../shared/widgets/section_header.dart';
 import '../../../shared/widgets/gradient_badge.dart';
 import '../../../core/services/strategy_service.dart';
 import '../../../core/models/behavior_prediction.dart';
+import '../../../core/services/quote_service.dart';
+import '../../../shared/widgets/quote_card.dart';
+import 'widgets/goal_sheet.dart';
 
 class StrategyScreen extends StatelessWidget {
   const StrategyScreen({super.key});
@@ -45,8 +48,28 @@ class StrategyScreen extends StatelessWidget {
               return SectionHeader(
                 title: l.yourGoals,
                 subtitle: l.trackMilestones,
+                trailing: IconButton(
+                  icon: const Icon(Icons.add_rounded, color: AppColors.primaryGreen),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: ctx,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => const GoalSheet(),
+                    );
+                  },
+                ),
               );
             }),
+          ),
+          
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+            sliver: SliverToBoxAdapter(
+              child: QuoteCard(quote: QuoteService.instance.getGoalQuote()),
+            ),
           ),
 
           Consumer<GoalProvider>(
@@ -375,15 +398,24 @@ class _GoalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color ?? AppColors.bgCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.bgGlassBorder),
-      ),
-      child: Column(
+    return GestureDetector(
+      onTap: () {
+         showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => GoalSheet(goal: goal),
+         );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardTheme.color ?? AppColors.bgCard,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.bgGlassBorder),
+        ),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -394,13 +426,40 @@ class _GoalCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      goal.title,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            goal.title,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: goal.priority == GoalPriority.high ? AppColors.danger.withValues(alpha: 0.15) :
+                                   goal.priority == GoalPriority.medium ? AppColors.warning.withValues(alpha: 0.15) :
+                                   AppColors.success.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            goal.priority == GoalPriority.high ? 'HIGH' : goal.priority == GoalPriority.medium ? 'MED' : 'LOW',
+                            style: TextStyle(
+                                color: goal.priority == GoalPriority.high ? AppColors.danger :
+                                       goal.priority == GoalPriority.medium ? AppColors.warning :
+                                       AppColors.success,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     Text(
                       l10n.daysLeft(goal.daysLeft),
@@ -454,7 +513,7 @@ class _GoalCard extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 }
 

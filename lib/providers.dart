@@ -174,7 +174,11 @@ class GoalProvider extends ChangeNotifier {
 
   GoalProvider(this._storage);
 
-  List<GoalModel> get goals => List.unmodifiable(_goals);
+  List<GoalModel> get goals {
+    final sorted = List.of(_goals);
+    sorted.sort((a, b) => b.priority.index.compareTo(a.priority.index));
+    return List.unmodifiable(sorted);
+  }
 
   Future<void> init() async {
     _goals = await _storage.loadGoals();
@@ -183,6 +187,20 @@ class GoalProvider extends ChangeNotifier {
 
   Future<void> addGoal(GoalModel goal) async {
     _goals.add(goal);
+    await _storage.saveGoals(_goals);
+    notifyListeners();
+  }
+
+  Future<void> editGoal(GoalModel goal) async {
+    final index = _goals.indexWhere((g) => g.id == goal.id);
+    if (index == -1) return;
+    _goals[index] = goal;
+    await _storage.saveGoals(_goals);
+    notifyListeners();
+  }
+
+  Future<void> deleteGoal(String id) async {
+    _goals.removeWhere((g) => g.id == id);
     await _storage.saveGoals(_goals);
     notifyListeners();
   }

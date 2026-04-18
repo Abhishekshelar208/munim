@@ -95,7 +95,10 @@ class TransactionTile extends StatelessWidget {
               ),
               const SizedBox(height: 3),
               if (transaction.behaviorPrediction != null)
-                _MlBehaviorChip(label: transaction.behaviorPrediction!.label)
+                _MlBehaviorChip(
+                  label: transaction.behaviorPrediction!.label,
+                  type: transaction.type,
+                )
               else
                 _RoiChip(label: transaction.roiLabel),
             ],
@@ -157,11 +160,18 @@ class _RoiChip extends StatelessWidget {
 
 class _MlBehaviorChip extends StatelessWidget {
   final BehaviorLabel label;
-  const _MlBehaviorChip({required this.label});
+  final TransactionType type;
+  const _MlBehaviorChip({required this.label, required this.type});
 
   @override
   Widget build(BuildContext context) {
-    final (text, color) = switch (label) {
+    // Suppress "Good Fit" strictly for expenses based on user preference
+    BehaviorLabel uiLabel = label;
+    if (type == TransactionType.expense && label == BehaviorLabel.good) {
+       uiLabel = BehaviorLabel.poor;
+    }
+
+    final (text, color) = switch (uiLabel) {
       BehaviorLabel.good      => ('Good Fit', AppColors.success),
       BehaviorLabel.neutral   => ('Neutral',   AppColors.warning),
       BehaviorLabel.poor      => ('Poor Choice', AppColors.danger),

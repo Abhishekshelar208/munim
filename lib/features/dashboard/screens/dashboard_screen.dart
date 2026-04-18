@@ -8,6 +8,8 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../shared/widgets/glass_card.dart';
 import '../../../shared/widgets/section_header.dart';
 import '../../../shared/widgets/gradient_badge.dart';
+import '../../../core/services/quote_service.dart';
+import '../../../shared/widgets/quote_card.dart';
 import 'widgets/net_profit_card.dart';
 import 'widgets/freedom_days_card.dart';
 import 'widgets/asset_liability_scale.dart';
@@ -40,6 +42,12 @@ class DashboardScreen extends StatelessWidget {
                   FadeInUp(
                     duration: const Duration(milliseconds: 400),
                     child: const NetProfitCard(),
+                  ),
+                  const SizedBox(height: 12),
+                  FadeInUp(
+                    delay: const Duration(milliseconds: 50),
+                    duration: const Duration(milliseconds: 400),
+                    child: QuoteCard(quote: QuoteService.instance.getRandomQuote()),
                   ),
                   const SizedBox(height: 12),
                   FadeInUp(

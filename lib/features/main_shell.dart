@@ -5,7 +5,7 @@ import 'dashboard/screens/dashboard_screen.dart';
 import 'future_insights/screens/insights_screen.dart';
 import 'ai_advisor/screens/advisor_screen.dart';
 import 'strategy/screens/strategy_screen.dart';
-import 'community/screens/community_screen.dart';
+import 'growth/screens/growth_screen.dart';
 import '../shared/widgets/muni_bottom_nav.dart';
 
 class MainShell extends StatefulWidget {
@@ -23,7 +23,7 @@ class _MainShellState extends State<MainShell> {
     const FutureInsightsScreen(),
     const AdvisorScreen(),
     const StrategyScreen(),
-    const CommunityScreen(),
+    const GrowthScreen(),
   ];
 
   @override

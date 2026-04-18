@@ -6,6 +6,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/models/insight_model.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../providers.dart';
+import '../../../core/services/quote_service.dart';
+import '../../../shared/widgets/quote_card.dart';
 
 class AdvisorScreen extends StatefulWidget {
   const AdvisorScreen({super.key});
@@ -81,6 +83,15 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
 
           // Quick prompts
           _QuickPrompts(prompts: quickPrompts, onTap: _send),
+
+          if (context.watch<AdvisorProvider>().messages.length <= 1)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: FadeInUp(
+                duration: const Duration(milliseconds: 400),
+                child: QuoteCard(quote: QuoteService.instance.getRandomQuote()),
+              ),
+            ),
 
           // Chat messages
           Expanded(

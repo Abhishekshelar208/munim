@@ -20,7 +20,7 @@ class MuniBottomNav extends StatelessWidget {
       _NavItem(icon: Icons.auto_graph_rounded, label: l10n.future),
       _NavItem(icon: Icons.psychology_rounded, label: l10n.advisor),
       _NavItem(icon: Icons.bolt_rounded,       label: l10n.strategy),
-      _NavItem(icon: Icons.group_rounded,      label: l10n.community),
+      _NavItem(icon: Icons.track_changes_rounded,  label: 'Progress'),
     ];
 
     return Container(

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../providers.dart';
 import 'onboarding_screen.dart';
+import 'user_guide.dart';
 import '../../main_shell.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -49,7 +50,7 @@ class _SplashScreenState extends State<SplashScreen>
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) =>
-            isOnboarded ? const MainShell() : const OnboardingScreen(),
+            isOnboarded ? const MainShell() : const UserGuideScreen(),
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
         transitionDuration: const Duration(milliseconds: 500),
@@ -108,7 +109,7 @@ class _SplashScreenState extends State<SplashScreen>
                   shaderCallback: (bounds) =>
                       AppColors.primaryGradient.createShader(bounds),
                   child: const Text(
-                    'MUNI-M (1.6)',
+                    'MUNI-M (2.1)',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 36,
